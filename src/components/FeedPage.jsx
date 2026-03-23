@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useWebSocket from "../hooks/useWebSocket";
-import { classifySeverity, matchesKeywords, getSourceTrust, detectRedFlags } from "../utils/classify";
+import { classifySeverity, matchesKeywords, getSourceTrust, getSourceBias, detectRedFlags } from "../utils/classify";
 import { SEVERITY_RANK } from "../constants/severity";
 import StatCards from "./StatCards";
 import ArticleList from "./ArticleList";
@@ -21,7 +21,8 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
     const matched = matchesKeywords(fullText, alertKeywords);
     const trust = getSourceTrust(item.feedName);
     const redFlags = detectRedFlags(fullText);
-    return { ...item, cleanDescription: item.description || "", severity, matchedKeywords: matched, isAlert: matched.length > 0, trust, redFlags };
+    const bias = getSourceBias(item.feedName);
+    return { ...item, cleanDescription: item.description || "", severity, matchedKeywords: matched, isAlert: matched.length > 0, trust, redFlags, bias };
   });
 
   const categories = ["ALL", ...new Set(feeds.map(f => f.category))];

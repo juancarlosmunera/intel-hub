@@ -181,6 +181,50 @@ const CHANNELS = {
       { name: "Defense One", url: "https://www.defenseone.com/rss/all/", category: "Defense" },
       // Breaking Defense: Nonpartisan
       { name: "Breaking Defense", url: "https://breakingdefense.com/feed/", category: "Defense" },
+      // USNI News: US Naval Institute — carrier ops, naval strategy
+      { name: "USNI News", url: "https://news.usni.org/feed", category: "Defense" },
+      // The Aviationist: Military aviation & air campaigns
+      { name: "The Aviationist", url: "https://theaviationist.com/feed/", category: "Defense" },
+      // 19FortyFive: Defense analysis, Iran air campaign coverage
+      { name: "19FortyFive", url: "https://www.19fortyfive.com/feed/", category: "Defense" },
+      // Middle East Eye: Regional coverage
+      { name: "Middle East Eye", url: "https://www.middleeasteye.net/rss", category: "International" },
+      // SOF News: Special operations & conflict updates
+      { name: "SOF News", url: "https://sof.news/feed/", category: "Defense" },
+      // Alma Research Center: Daily Iran/Middle East conflict reports
+      { name: "Alma Research Center", url: "https://israel-alma.org/feed/", category: "Conflict Monitor" },
+    ],
+    hasApiFeeds: false,
+  },
+
+  geopolitics: {
+    label: "Geopolitics & Defense",
+    dbFile: "articles_geopolitics.json",
+    feeds: [
+      // ── Geopolitics & Strategy ──
+      { name: "Foreign Affairs", url: "https://www.foreignaffairs.com/rss.xml", category: "Geopolitics" },
+      { name: "Foreign Policy", url: "https://foreignpolicy.com/feed/", category: "Geopolitics" },
+      { name: "The Diplomat", url: "https://thediplomat.com/feed/", category: "Geopolitics" },
+      { name: "War on the Rocks", url: "https://warontherocks.com/feed/", category: "Geopolitics" },
+      // ── Think Tanks ──
+      { name: "RAND", url: "https://www.rand.org/blog.xml", category: "Think Tank" },
+      { name: "CSIS", url: "https://www.csis.org/rss.xml", category: "Think Tank" },
+      { name: "Council on Foreign Relations", url: "https://www.cfr.org/feed", category: "Think Tank" },
+      { name: "Stimson Center", url: "https://www.stimson.org/feed/", category: "Think Tank" },
+      { name: "Atlantic Council", url: "https://www.atlanticcouncil.org/feed/", category: "Think Tank" },
+      { name: "Heritage Foundation", url: "https://www.heritage.org/rss", category: "Think Tank" },
+      { name: "Hudson Institute", url: "https://www.hudson.org/rss.xml", category: "Think Tank" },
+      // ── Defense & Military ──
+      { name: "Defense One", url: "https://www.defenseone.com/rss/all/", category: "Defense" },
+      { name: "Breaking Defense", url: "https://breakingdefense.com/feed/", category: "Defense" },
+      { name: "USNI News", url: "https://news.usni.org/feed", category: "Defense" },
+      { name: "The Aviationist", url: "https://theaviationist.com/feed/", category: "Defense" },
+      { name: "19FortyFive", url: "https://www.19fortyfive.com/feed/", category: "Defense" },
+      { name: "SOF News", url: "https://sof.news/feed/", category: "Defense" },
+      // ── Conflict Monitoring ──
+      { name: "Middle East Eye", url: "https://www.middleeasteye.net/rss", category: "Conflict Monitor" },
+      { name: "Alma Research Center", url: "https://israel-alma.org/feed/", category: "Conflict Monitor" },
+      { name: "Long War Journal", url: "https://www.longwarjournal.org/feed", category: "Conflict Monitor" },
     ],
     hasApiFeeds: false,
   },
@@ -213,10 +257,15 @@ const CHANNELS = {
       { name: "Schneier on Security", url: "https://www.schneier.com/feed/", category: "Independent Cyber" },
       // ── Geopolitical Intel & Conflict Monitoring ──
       { name: "Long War Journal", url: "https://www.longwarjournal.org/feed", category: "Conflict Monitor" },
+      { name: "Alma Research Center", url: "https://israel-alma.org/feed/", category: "Conflict Monitor" },
+      { name: "SOF News", url: "https://sof.news/feed/", category: "Conflict Monitor" },
       // Lawfare: removed — returns 403
       { name: "BleepingComputer", url: "https://www.bleepingcomputer.com/feed/", category: "Threat Intel" },
       // ── Sanctions (government primary source) ──
       { name: "OFAC Updates", url: "https://ofac.treasury.gov/rss.xml", category: "Sanctions" },
+      // ── Military / Government ──
+      { name: "19FortyFive", url: "https://www.19fortyfive.com/feed/", category: "Defense" },
+      { name: "USNI News", url: "https://news.usni.org/feed", category: "Defense" },
     ],
     hasApiFeeds: false,
   },

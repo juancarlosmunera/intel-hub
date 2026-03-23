@@ -92,6 +92,16 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                   <span className="tag" style={{ background: "#5e5ce610", color: "#8e8ce6", border: "1px solid #5e5ce630" }}>
                     {article.feedCategory}
                   </span>
+                  {article.bias && article.bias.code !== "N" && (
+                    <span className="tag" style={{
+                      background: `${article.bias.color}15`,
+                      color: article.bias.color,
+                      border: `1px solid ${article.bias.color}30`,
+                      fontWeight: 700, fontSize: 8, letterSpacing: 0.8,
+                    }} title={`Political leaning: ${article.bias.label}`}>
+                      {article.bias.label}
+                    </span>
+                  )}
                   {article.redFlags && article.redFlags.length > 0 && (
                     <span className="tag" style={{
                       background: "#ff2d5515", color: "#ff6b8a",
@@ -152,6 +162,16 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               <span className="tag" style={{ background: "#1a2436", color: "#6b7a8d", border: "1px solid #1e2a3a" }}>
                 {selectedArticle.feedName}
               </span>
+              {selectedArticle.bias && selectedArticle.bias.code !== "N" && (
+                <span className="tag" style={{
+                  background: `${selectedArticle.bias.color}15`,
+                  color: selectedArticle.bias.color,
+                  border: `1px solid ${selectedArticle.bias.color}30`,
+                  fontWeight: 700,
+                }}>
+                  {selectedArticle.bias.label}
+                </span>
+              )}
               <span style={{ fontSize: 11, color: "#3a4a5e" }}>{timeAgo(selectedArticle.pubDate)}</span>
             </div>
 

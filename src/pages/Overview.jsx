@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useWebSocket from "../hooks/useWebSocket";
-import { classifySeverity, matchesKeywords, timeAgo, getSourceTrust } from "../utils/classify";
+import { classifySeverity, matchesKeywords, timeAgo, getSourceTrust, getSourceBias } from "../utils/classify";
 import { SEVERITY_RANK, SEVERITY_COLORS } from "../constants/severity";
 import { ALERT_KEYWORDS as CYBER_KW } from "../constants/cyberFeeds";
 import { ALERT_KEYWORDS as WORLD_KW } from "../constants/worldFeeds";
@@ -13,6 +13,7 @@ import Pulse from "../components/Pulse";
 const CHANNELS = [
   { id: "cyber", label: "Cybersecurity", icon: "🛡", color: "#00ff88", path: "/cyber", keywords: CYBER_KW },
   { id: "world", label: "World News", icon: "🌐", color: "#64d2ff", path: "/world", keywords: WORLD_KW },
+  { id: "geopolitics", label: "Geopolitics", icon: "⚔", color: "#ff6b35", path: "/geopolitics", keywords: [...WORLD_KW, "Iran", "CENTCOM", "airstrike", "missile", "NATO", "escalation", "ceasefire", "nuclear", "sanctions"] },
   { id: "osint", label: "OSINT", icon: "🔍", color: "#ff9500", path: "/osint", keywords: OSINT_KW },
   { id: "darkweb", label: "Dark Web", icon: "👁", color: "#ff2255", path: "/darkweb", keywords: DARKWEB_KW },
   { id: "social", label: "Social Media", icon: "📡", color: "#7c4dff", path: "/social", keywords: SOCIAL_KW },
@@ -28,7 +29,8 @@ function ChannelSummary({ channel }) {
       const severity = classifySeverity(fullText);
       const matched = matchesKeywords(fullText, channel.keywords);
       const trust = getSourceTrust(item.feedName);
-      return { ...item, cleanDescription: item.description || "", severity, matchedKeywords: matched, isAlert: matched.length > 0, trust };
+      const bias = getSourceBias(item.feedName);
+      return { ...item, cleanDescription: item.description || "", severity, matchedKeywords: matched, isAlert: matched.length > 0, trust, bias };
     }).sort((a, b) => {
       const ra = SEVERITY_RANK[a.severity.level] ?? 4;
       const rb = SEVERITY_RANK[b.severity.level] ?? 4;
@@ -126,6 +128,16 @@ function ChannelSummary({ channel }) {
           }} title={article.trust.description}>
             {article.trust.label}
           </span>
+          {article.bias && article.bias.code !== "N" && (
+            <span className="tag" style={{
+              background: `${article.bias.color}10`,
+              color: article.bias.color,
+              border: `1px solid ${article.bias.color}25`,
+              fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
+            }} title={`Political leaning: ${article.bias.label}`}>
+              {article.bias.short}
+            </span>
+          )}
           <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "#dce3ea", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {article.title}
           </div>

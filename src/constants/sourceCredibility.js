@@ -123,6 +123,12 @@ export const SOURCE_TRUST = {
   // Tier 2: Defense publications
   "Defense One": 2,
   "Breaking Defense": 2,
+  "USNI News": 2,
+  "The Aviationist": 2,
+  "SOF News": 2,
+  "Alma Research Center": 2,
+  "19FortyFive": 3,
+  "Middle East Eye": 2,
 
   // ── OSINT CHANNEL ──────────────────────────────────────────
   // Tier 1: Raw data & government

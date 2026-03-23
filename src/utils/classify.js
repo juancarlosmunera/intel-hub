@@ -1,9 +1,16 @@
 import { SEVERITY_RULES, ADVISORY_PATTERNS } from "../constants/severity";
 import { SOURCE_TRUST, TRUST_TIERS, CONTENT_RED_FLAGS, DISINFO_PATTERNS } from "../constants/sourceCredibility";
+import { SOURCE_BIAS, BIAS_LABELS } from "../constants/sourceBias";
 
 export function getSourceTrust(feedName) {
   const tier = SOURCE_TRUST[feedName] ?? 4;
   return { tier, ...TRUST_TIERS[tier] };
+}
+
+export function getSourceBias(feedName) {
+  const code = SOURCE_BIAS[feedName];
+  if (!code) return null;
+  return { code, ...BIAS_LABELS[code] };
 }
 
 export function detectRedFlags(text) {

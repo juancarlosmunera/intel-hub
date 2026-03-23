@@ -1,0 +1,167 @@
+Intel Hub — Free Hosting & Deployment Plan
+============================================
+Created: 2026-03-17
+Status: Planning
+
+1. RECOMMENDED PLATFORM: Oracle Cloud Always Free Tier
+------------------------------------------------------
+
+Why Oracle Cloud:
+- Permanently free (not a trial — no expiration)
+- 2x AMD Compute VMs (1 GB RAM, 1/8 OCPU each)
+- 200 GB block storage total
+- 10 TB/month outbound data transfer
+- No credit card charge (card required for signup verification only)
+
+Specs needed for Intel Hub:
+- Node.js backend + Vite-built React frontend
+- ~200-400 MB RAM under normal load
+- Minimal CPU (RSS parsing, WebSocket broadcast)
+- Storage: <1 GB (app + 48h article cache)
+
+Verdict: 1 GB AMD VM is sufficient. Second VM available as
+backup or for the dark web monitor microservice.
+
+
+2. DEPLOYMENT ARCHITECTURE
+--------------------------
+
+VM 1 — Intel Hub (Production)
+  - Ubuntu 22.04 or Oracle Linux 8
+  - Node.js 18 LTS via nvm
+  - PM2 process manager (auto-restart, log rotation)
+  - Nginx reverse proxy (port 80/443 → localhost:3000)
+  - Let's Encrypt SSL via certbot
+  - UFW firewall: allow 22, 80, 443 only
+
+VM 2 — Dark Web Monitor (Optional)
+  - Tor daemon + dark web crawler microservice
+  - Isolated from main app for security
+  - Communicates with VM1 via internal VCN
+
+
+3. SETUP STEPS
+--------------
+
+a) Oracle Cloud Account
+   - Sign up at cloud.oracle.com
+   - Select home region closest to you
+   - Create a Compute instance → Always Free eligible shape
+   - Download SSH key pair during creation
+
+b) Server Setup
+   ssh -i key.pem ubuntu@<public-ip>
+
+   # System updates
+   sudo apt update && sudo apt upgrade -y
+
+   # Node.js 18
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt install -y nodejs
+
+   # PM2
+   sudo npm install -g pm2
+
+   # Clone repo
+   git clone <your-repo-url> ~/intel-hub
+   cd ~/intel-hub
+   cp .env.example .env
+   nano .env  # configure API keys, SMTP, etc.
+   npm install
+   npm run build  # build Vite frontend
+
+   # Start with PM2
+   pm2 start server.js --name intel-hub
+   pm2 save
+   pm2 startup  # auto-start on reboot
+
+c) Nginx Reverse Proxy
+   sudo apt install -y nginx
+
+   # /etc/nginx/sites-available/intel-hub
+   server {
+       listen 80;
+       server_name yourdomain.com;
+
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+       }
+   }
+
+   sudo ln -s /etc/nginx/sites-available/intel-hub /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+
+d) SSL (Free via Let's Encrypt)
+   sudo apt install -y certbot python3-certbot-nginx
+   sudo certbot --nginx -d yourdomain.com
+   # Auto-renews via systemd timer
+
+e) Firewall
+   sudo ufw allow 22
+   sudo ufw allow 80
+   sudo ufw allow 443
+   sudo ufw enable
+
+
+4. DOMAIN OPTIONS (Free)
+-------------------------
+
+- Freenom (.tk, .ml, .ga) — free domains, unreliable
+- DuckDNS (duckdns.org) — free dynamic DNS subdomain
+- No-IP (noip.com) — free dynamic DNS, requires monthly confirmation
+- Cloudflare (cloudflare.com) — free DNS + CDN if you own a domain
+  - Cheapest .com: ~$10/year via Cloudflare Registrar (at cost)
+
+
+5. ALTERNATIVE FREE PLATFORMS (Evaluated)
+-----------------------------------------
+
+| Platform        | Free Tier           | Why Not Chosen              |
+|-----------------|---------------------|-----------------------------|
+| Railway         | $5 credit/month     | Runs out with 24/7 server   |
+| Render          | 750 hrs/month       | Spins down after inactivity |
+| Fly.io          | 3 shared VMs        | 256 MB RAM — too tight      |
+| Vercel/Netlify  | Static + serverless | No persistent WebSocket     |
+| Heroku          | No free tier        | Removed free tier in 2022   |
+| Oracle Cloud    | 2 VMs permanently   | BEST — full VM, no limits   |
+
+
+6. MONITORING & MAINTENANCE
+----------------------------
+
+- PM2 logs: pm2 logs intel-hub
+- PM2 monitoring: pm2 monit
+- Auto-restart on crash: built into PM2
+- Log rotation: pm2 install pm2-logrotate
+- OS updates: set up unattended-upgrades
+- SSL renewal: automatic via certbot timer
+- Article cache cleanup: built into app (48h retention)
+
+
+7. COST SUMMARY
+----------------
+
+| Item              | Cost      |
+|-------------------|-----------|
+| Oracle Cloud VM   | $0/month  |
+| Let's Encrypt SSL | $0/month  |
+| DuckDNS domain    | $0/month  |
+| Total             | $0/month  |
+
+Optional: Custom .com domain ~$10/year via Cloudflare.
+
+
+8. NOTES
+--------
+
+- The 1 GB RAM VM handles Intel Hub fine for personal/small-team use
+- If scaling beyond ~10 concurrent WebSocket connections, consider
+  upgrading to the ARM Ampere shape (4 OCPU, 24 GB RAM — also
+  Always Free but availability varies by region)
+- For the dark web monitor, Tor needs its own VM for isolation
+- Back up .env and data/ directory periodically

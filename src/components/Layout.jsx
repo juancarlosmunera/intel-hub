@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: "/cyber", icon: "🛡", label: "Cybersecurity" },
   { to: "/world", icon: "🌐", label: "World News" },
   { to: "/osint", icon: "🔍", label: "OSINT" },
+  { to: "/darkweb", icon: "👁", label: "Dark Web" },
 ];
 
 export default function Layout() {

@@ -138,6 +138,36 @@ export const SOURCE_TRUST = {
   "Intel471 Blog": 3,
   "Flashpoint Blog": 3,
   "Kaspersky Securelist": 3,
+
+  // ── OSINT CHANNEL (new feeds) ────────────────────────────────
+  "Microsoft Threat Intel": 3,
+  "Cisco Talos": 3,
+  "CrowdStrike Blog": 3,
+  "SentinelOne Labs": 3,
+  "Unit 42 (Palo Alto)": 3,
+  "The Record": 2,
+  "CISA Alerts": 1,
+  "Bellingcat": 2,
+  "Krebs on Security": 2,
+  "Schneier on Security": 2,
+  "Long War Journal": 2,
+  "BleepingComputer": 2,
+
+  // ── WORLD NEWS (independent journalism) ──────────────────────
+  "Racket News (Taibbi)": 2,
+  "Glenn Greenwald": 2,
+  "Chris Hedges Report": 2,
+  "Seymour Hersh": 2,
+  "The Orf Report (Orfalea)": 3,
+  "The Grayzone": 3,
+  "Consortium News": 3,
+
+  // ── DARK WEB CHANNEL ─────────────────────────────────────────
+  "Ransomware.live": 1,
+  "RansomFeed.it": 2,
+  "DarkFeed": 2,
+  "DataBreaches.net": 2,
+  "Have I Been Pwned": 1,
 };
 
 // ═══════════════════════════════════════════════════════════════

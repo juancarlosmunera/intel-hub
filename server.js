@@ -81,11 +81,7 @@ const CHANNELS = {
       { name: "PCI SSC Blog", url: "https://blog.pcisecuritystandards.org/rss.xml", category: "PCI / Compliance" },
       { name: "Finextra Security", url: "https://www.finextra.com/rss/channel.aspx?m=se", category: "Fintech Security" },
       { name: "Payments Dive", url: "https://www.paymentsdive.com/feeds/news/", category: "Payments" },
-      // Abuse.ch (Free Threat Intel)
-      { name: "URLhaus Recent Threats", url: "https://urlhaus.abuse.ch/feeds/rss/", category: "Abuse.ch" },
-      { name: "MalwareBazaar Recent", url: "https://bazaar.abuse.ch/rss/", category: "Abuse.ch" },
-      { name: "Feodo Tracker", url: "https://feodotracker.abuse.ch/rss/", category: "Abuse.ch" },
-      { name: "SSL Blacklist", url: "https://sslbl.abuse.ch/rss/", category: "Abuse.ch" },
+      // Abuse.ch — RSS feeds deprecated, now API-only (ThreatFox API is active below)
     ],
     hasApiFeeds: true, // ThreatFox, GreyNoise, VulnCheck
   },
@@ -106,8 +102,7 @@ const CHANNELS = {
       // ── Center (7) ─────────────────────────────────────────
       // Reuters: Center — wire service, global standard for neutral reporting
       { name: "Reuters World", url: "https://news.google.com/rss/search?q=when:24h+allinurl:reuters.com&ceid=US:en&hl=en-US&gl=US", category: "Wire Service" },
-      // UPI: Center — traditional wire service, just-the-facts
-      { name: "UPI", url: "https://rss.upi.com/news/news.rss", category: "Wire Service" },
+      // UPI: removed — RSS returns 403
       // France24: Center — French public international broadcaster
       { name: "France24", url: "https://www.france24.com/en/rss", category: "International" },
       // Nikkei Asia: Center — Asian business & markets focus
@@ -170,8 +165,7 @@ const CHANNELS = {
       { name: "Heritage Foundation", url: "https://www.heritage.org/rss", category: "Think Tank" },
       // Hudson Institute: Right (neoconservative)
       { name: "Hudson Institute", url: "https://www.hudson.org/rss.xml", category: "Think Tank" },
-      // Cato Institute: Right/Libertarian
-      { name: "Cato Institute", url: "https://www.cato.org/rss/recent-opeds", category: "Think Tank" },
+      // Cato Institute: removed — Incapsula WAF blocks RSS fetching
 
       // ── Independent Journalism (7) — non-corporate, no institutional affiliation ──
       { name: "Racket News (Taibbi)", url: "https://www.racket.news/feed", category: "Independent" },
@@ -219,12 +213,27 @@ const CHANNELS = {
       { name: "Schneier on Security", url: "https://www.schneier.com/feed/", category: "Independent Cyber" },
       // ── Geopolitical Intel & Conflict Monitoring ──
       { name: "Long War Journal", url: "https://www.longwarjournal.org/feed", category: "Conflict Monitor" },
-      { name: "Lawfare", url: "https://www.lawfaremedia.org/feed", category: "Security Policy" },
+      // Lawfare: removed — returns 403
       { name: "BleepingComputer", url: "https://www.bleepingcomputer.com/feed/", category: "Threat Intel" },
       // ── Sanctions (government primary source) ──
       { name: "OFAC Updates", url: "https://ofac.treasury.gov/rss.xml", category: "Sanctions" },
     ],
     hasApiFeeds: false,
+  },
+
+  darkweb: {
+    label: "Dark Web Monitor",
+    dbFile: "articles_darkweb.json",
+    feeds: [
+      // ── Ransomware Tracking ──
+      { name: "Ransomware.live", url: "https://ransomware.live/rss.xml", category: "Ransomware" },
+      { name: "RansomFeed.it", url: "https://www.ransomfeed.it/rss-complete.php", category: "Ransomware" },
+      { name: "DarkFeed", url: "https://darkfeed.io/feed/", category: "Ransomware" },
+      // ── Breach & Leak Journalism ──
+      { name: "DataBreaches.net", url: "https://www.databreaches.net/feed/", category: "Breaches" },
+      // Reddit: removed — returns 403 to server-side fetching
+    ],
+    hasApiFeeds: true,
   },
 };
 
@@ -384,6 +393,56 @@ async function fetchVulnCheckKEV() {
   }
 }
 
+async function fetchHIBPBreaches() {
+  try {
+    const res = await fetch("https://haveibeenpwned.com/api/v2/breaches", {
+      headers: {
+        "User-Agent": "IntelHub/2.0",
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return [];
+    const breaches = await res.json();
+    // Only breaches added/modified in the last 30 days
+    const cutoff = new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0];
+    return breaches
+      .filter(b => b.AddedDate >= cutoff || b.ModifiedDate >= cutoff)
+      .slice(0, 30)
+      .map(b => ({
+        title: `[HIBP] ${b.Name}: ${Number(b.PwnCount).toLocaleString()} accounts breached`,
+        link: `https://haveibeenpwned.com/PwnedWebsites#${encodeURIComponent(b.Name)}`,
+        pubDate: b.ModifiedDate || b.AddedDate || b.BreachDate,
+        description: `Domain: ${b.Domain || "N/A"} | Breach date: ${b.BreachDate} | Data exposed: ${(b.DataClasses || []).join(", ")}`.slice(0, 300),
+        feedName: "Have I Been Pwned",
+        feedCategory: "Breaches",
+      }));
+  } catch (e) {
+    console.error("[API] HIBP:", e.message);
+    return [];
+  }
+}
+
+async function fetchDarkWebApiFeeds() {
+  const results = await Promise.allSettled([fetchHIBPBreaches()]);
+  const items = [];
+  const stats = {};
+  const names = ["Have I Been Pwned"];
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    const name = names[i];
+    if (r.status === "fulfilled" && r.value.length > 0) {
+      items.push(...r.value);
+      stats[name] = { count: r.value.length, status: "ok" };
+    } else if (r.status === "fulfilled") {
+      stats[name] = { count: 0, status: "ok" };
+    } else {
+      stats[name] = { count: 0, status: "error" };
+    }
+  }
+  return { items, stats };
+}
+
 async function fetchAllApiFeeds() {
   const results = await Promise.allSettled([
     fetchThreatFoxRecent(),
@@ -453,9 +512,11 @@ async function fetchChannelFeeds(channelId) {
     if (r.status === "fulfilled") freshItems.push(...r.value);
   }
 
-  // API feeds for cyber channel only
+  // API feeds per channel
   if (channel.hasApiFeeds) {
-    const apiResults = await fetchAllApiFeeds();
+    const apiResults = channelId === "darkweb"
+      ? await fetchDarkWebApiFeeds()
+      : await fetchAllApiFeeds();
     freshItems.push(...apiResults.items);
     Object.assign(stats, apiResults.stats);
   }
@@ -665,6 +726,15 @@ async function refreshAllChannels() {
   );
 }
 
+// Pre-load persisted data into channelCache so clients get data immediately on connect
+for (const [id, channel] of Object.entries(CHANNELS)) {
+  const db = loadArticleDb(channel.dbFile);
+  if (db.articles.length > 0) {
+    channelCache[id] = { articles: db.articles, stats: {} };
+    console.log(`[CACHE] Pre-loaded ${id}: ${db.articles.length} articles from disk`);
+  }
+}
+
 function startServer(port) {
   const probe = createServer();
   probe.once("error", (err) => {
@@ -697,10 +767,11 @@ function startServer(port) {
 
             if (msg.type === "subscribe" && CHANNELS[msg.channel]) {
               ws._channels.add(msg.channel);
-              console.log(`[WS] Client subscribed to ${msg.channel}`);
+              const cached = channelCache[msg.channel];
+              console.log(`[WS] Client subscribed to ${msg.channel} — cache: ${cached ? cached.articles?.length + " articles" : "empty"}`);
               // Send cached data immediately
-              if (channelCache[msg.channel]) {
-                ws.send(JSON.stringify({ type: "feed-update", channel: msg.channel, ...channelCache[msg.channel] }));
+              if (cached) {
+                ws.send(JSON.stringify({ type: "feed-update", channel: msg.channel, ...cached }));
               } else {
                 ws.send(JSON.stringify({ type: "loading" }));
               }

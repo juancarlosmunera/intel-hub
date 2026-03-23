@@ -2,6 +2,29 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 const WS_PORTS = [3001, 3002, 3003];
 
+// Shared working port — once discovered, all hooks use it instantly
+let workingPort = null;
+
+function tryConnect(ports) {
+  return new Promise((resolve) => {
+    const sockets = [];
+    let resolved = false;
+    for (const port of ports) {
+      const ws = new WebSocket(`ws://localhost:${port}`);
+      sockets.push(ws);
+      ws.onopen = () => {
+        if (resolved) { ws.close(); return; }
+        resolved = true;
+        workingPort = port;
+        for (const s of sockets) { if (s !== ws && s.readyState <= 1) s.close(); }
+        resolve(ws);
+      };
+      ws.onerror = () => { ws.close(); };
+    }
+    setTimeout(() => { if (!resolved) { resolved = true; resolve(null); } }, 5000);
+  });
+}
+
 export default function useWebSocket(channel = "cyber") {
   const [data, setData] = useState({ articles: [], stats: {} });
   const [loading, setLoading] = useState(true);
@@ -11,23 +34,39 @@ export default function useWebSocket(channel = "cyber") {
 
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
-  const portIndexRef = useRef(0);
+  const mountedRef = useRef(true);
 
-  const connectWs = useCallback(() => {
+  const connectWs = useCallback(async () => {
     if (wsRef.current && wsRef.current.readyState <= 1) return;
 
-    const port = WS_PORTS[portIndexRef.current % WS_PORTS.length];
-    const url = `ws://localhost:${port}`;
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
+    let ws;
+    if (workingPort) {
+      ws = new WebSocket(`ws://localhost:${workingPort}`);
+      await new Promise((resolve) => {
+        ws.onopen = resolve;
+        ws.onerror = () => { workingPort = null; ws.close(); resolve(); };
+      });
+      if (ws.readyState !== 1) {
+        ws = await tryConnect(WS_PORTS);
+      }
+    } else {
+      ws = await tryConnect(WS_PORTS);
+    }
 
-    ws.onopen = () => {
-      portIndexRef.current = WS_PORTS.indexOf(port);
-      setConnected(true);
-      setError(null);
-      // Subscribe to channel
-      ws.send(JSON.stringify({ type: "subscribe", channel }));
-    };
+    if (!ws || !mountedRef.current) {
+      if (mountedRef.current) {
+        setError("Cannot connect to backend. Is the server running?");
+        reconnectTimer.current = setTimeout(connectWs, 3000);
+      }
+      return;
+    }
+
+    wsRef.current = ws;
+    setConnected(true);
+    setError(null);
+
+    // Subscribe to our channel
+    ws.send(JSON.stringify({ type: "subscribe", channel }));
 
     ws.onmessage = (event) => {
       try {
@@ -49,22 +88,19 @@ export default function useWebSocket(channel = "cyber") {
     };
 
     ws.onclose = () => {
+      if (!mountedRef.current) return;
       setConnected(false);
       reconnectTimer.current = setTimeout(connectWs, 3000);
     };
 
-    ws.onerror = () => {
-      portIndexRef.current = (portIndexRef.current + 1) % WS_PORTS.length;
-      if (portIndexRef.current === 0) {
-        setError("Cannot connect to backend. Is the server running?");
-      }
-      ws.close();
-    };
+    ws.onerror = () => {};
   }, [channel]);
 
   useEffect(() => {
+    mountedRef.current = true;
     connectWs();
     return () => {
+      mountedRef.current = false;
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       if (wsRef.current) wsRef.current.close();
     };

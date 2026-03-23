@@ -163,11 +163,75 @@ export const SOURCE_TRUST = {
   "Consortium News": 3,
 
   // ── DARK WEB CHANNEL ─────────────────────────────────────────
+  // Tier 1: Raw data / government
   "Ransomware.live": 1,
+  "Have I Been Pwned": 1,
+  "SANS ISC": 1,
+  "UK NCSC Reports": 1,
+
+  // Tier 2: Established research & journalism
   "RansomFeed.it": 2,
   "DarkFeed": 2,
   "DataBreaches.net": 2,
-  "Have I Been Pwned": 1,
+  "Troy Hunt": 2,
+  "CyberScoop": 2,
+  "The DFIR Report": 2,
+  "BushidoToken": 2,
+  "Check Point Research": 2,
+  "Elastic Security Labs": 2,
+
+  // Tier 3: Vendor / commercial threat intel
+  "Intel 471 Blog": 3,
+  "Flashpoint": 3,
+  "Google Threat Intel": 3,
+  "Securelist (Kaspersky)": 3,
+  "Huntress Blog": 3,
+  "ANY.RUN Blog": 3,
+  "Malwarebytes Blog": 3,
+  "Sophos Blog": 3,
+  "Rapid7 Blog": 3,
+
+  // ── SOCIAL MEDIA CHANNEL ────────────────────────────────────────
+  // Tier 2: Established security researchers with track record
+  "X: vx-underground": 2,
+  "X: GossiTheDog": 2,
+  "X: MalwareHunterTeam": 2,
+  "X: BleepinComputer": 2,
+  "X: SwiftOnSecurity": 2,
+  "X: _JohnHammond": 2,
+  "X: campuscodi": 2,
+  "X: Search": 3,
+
+  // Tier 3: Moderated community subreddits
+  "r/netsec": 3,
+  "r/cybersecurity": 3,
+  "r/malware": 3,
+  "r/ReverseEngineering": 3,
+  "r/AskNetsec": 3,
+
+  // Tier 4: Less moderated / unvetted
+  "r/darknet": 4,
+  "r/privacy": 4,
+
+  // Telegram — inherently less verifiable
+  "TG: vx-underground": 3,
+
+  // ── Mastodon — same trust as their other platform presence ──
+  "Mastodon: jerry": 2,
+  "Mastodon: briankrebs": 2,
+  "Mastodon: BleepingComputer": 2,
+  "Mastodon: malwaretech": 2,
+
+  // ── GitHub Security Advisories — official, reviewed ──
+  "GitHub Advisories": 1,
+
+  // ── NVD — US government primary source ──
+  "NVD (NIST)": 1,
+
+  // ── Additional Reddit subreddits ──
+  "r/blueteamsec": 3,
+  "r/computerforensics": 3,
+  "r/OSINT": 3,
 };
 
 // ═══════════════════════════════════════════════════════════════

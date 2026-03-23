@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: "/world", icon: "🌐", label: "World News" },
   { to: "/osint", icon: "🔍", label: "OSINT" },
   { to: "/darkweb", icon: "👁", label: "Dark Web" },
+  { to: "/social", icon: "📡", label: "Social Media" },
 ];
 
 export default function Layout() {

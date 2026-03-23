@@ -229,11 +229,41 @@ const CHANNELS = {
       { name: "Ransomware.live", url: "https://ransomware.live/rss.xml", category: "Ransomware" },
       { name: "RansomFeed.it", url: "https://www.ransomfeed.it/rss-complete.php", category: "Ransomware" },
       { name: "DarkFeed", url: "https://darkfeed.io/feed/", category: "Ransomware" },
+      { name: "The DFIR Report", url: "https://thedfirreport.com/feed/", category: "Ransomware" },
       // ── Breach & Leak Journalism ──
       { name: "DataBreaches.net", url: "https://www.databreaches.net/feed/", category: "Breaches" },
-      // Reddit: removed — returns 403 to server-side fetching
+      { name: "Troy Hunt", url: "https://www.troyhunt.com/rss/", category: "Breaches" },
+      { name: "CyberScoop", url: "https://cyberscoop.com/feed/", category: "Breaches" },
+      // ── Underground / Threat Intel ──
+      { name: "Intel 471 Blog", url: "https://intel471.com/blog/feed", category: "Underground" },
+      { name: "Flashpoint", url: "https://www.flashpoint.io/feed/", category: "Underground" },
+      { name: "BushidoToken", url: "https://blog.bushidotoken.net/feeds/posts/default?alt=rss", category: "Underground" },
+      { name: "Check Point Research", url: "https://research.checkpoint.com/feed/", category: "Threat Intel" },
+      { name: "Google Threat Intel", url: "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/", category: "Threat Intel" },
+      { name: "Securelist (Kaspersky)", url: "https://securelist.com/feed/", category: "Threat Intel" },
+      { name: "Huntress Blog", url: "https://www.huntress.com/blog/rss.xml", category: "Threat Intel" },
+      { name: "Elastic Security Labs", url: "https://www.elastic.co/security-labs/rss/feed.xml", category: "Threat Intel" },
+      // ── Malware & Botnet Tracking ──
+      { name: "ANY.RUN Blog", url: "https://any.run/cybersecurity-blog/feed/", category: "Malware" },
+      { name: "Malwarebytes Blog", url: "https://www.malwarebytes.com/blog/feed", category: "Malware" },
+      { name: "Sophos Blog", url: "https://www.sophos.com/en-us/blog/feed", category: "Malware" },
+      // ── Exploitation in the Wild ──
+      { name: "SANS ISC", url: "https://isc.sans.edu/rssfeed.xml", category: "Exploitation" },
+      { name: "Rapid7 Blog", url: "https://www.rapid7.com/blog/rss/", category: "Exploitation" },
+      { name: "UK NCSC Reports", url: "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml", category: "Government" },
     ],
     hasApiFeeds: true,
+  },
+
+  social: {
+    label: "Social Media",
+    dbFile: "articles_social.json",
+    feeds: [
+      // Reddit: fetched via JSON API in fetchSocialApiFeeds() — no RSS feeds needed
+      // X (Twitter): RSS bridges are dead (API lockdown). Set TWITTER_BEARER_TOKEN to enable.
+      // Telegram: Set TELEGRAM_BOT_TOKEN (free via @BotFather) to enable.
+    ],
+    hasApiFeeds: true, // Reddit JSON (always) + optional Twitter API + Telegram Bot API
   },
 };
 
@@ -443,6 +473,259 @@ async function fetchDarkWebApiFeeds() {
   return { items, stats };
 }
 
+// ── Reddit JSON API (no key required) ──────────────────────────
+
+const REDDIT_SUBS = ["netsec", "cybersecurity", "malware", "darknet", "privacy", "ReverseEngineering", "AskNetsec", "blueteamsec", "computerforensics", "OSINT"];
+
+async function fetchRedditSubreddit(sub) {
+  const res = await fetch(`https://www.reddit.com/r/${sub}/new.json?limit=25`, {
+    headers: { "User-Agent": "IntelHub/2.0 (cybersec monitoring dashboard)" },
+  });
+  if (!res.ok) throw new Error(`Reddit r/${sub}: ${res.status}`);
+  const json = await res.json();
+  return (json.data?.children || []).map(({ data: p }) => ({
+    title: p.title || "",
+    link: p.url && !p.url.includes("reddit.com") ? p.url : `https://www.reddit.com${p.permalink}`,
+    pubDate: p.created_utc ? new Date(p.created_utc * 1000).toISOString() : new Date().toISOString(),
+    description: (p.selftext || "").slice(0, 300),
+    feedName: `r/${sub}`,
+    feedCategory: "Reddit",
+  }));
+}
+
+// ── Twitter API v2 (optional, needs TWITTER_BEARER_TOKEN) ──────
+
+const TWITTER_BEARER = process.env.TWITTER_BEARER_TOKEN || "";
+
+async function fetchTwitterSearch() {
+  if (!TWITTER_BEARER) return [];
+  try {
+    const query = encodeURIComponent("(#infosec OR #threatintel OR #ransomware OR #databreach OR #malware OR #0day) -is:retweet lang:en");
+    const res = await fetch(`https://api.twitter.com/2/tweets/search/recent?query=${query}&max_results=25&tweet.fields=created_at,author_id,text`, {
+      headers: { Authorization: `Bearer ${TWITTER_BEARER}` },
+    });
+    if (!res.ok) throw new Error(`Twitter API: ${res.status}`);
+    const json = await res.json();
+    return (json.data || []).map(t => ({
+      title: t.text.slice(0, 120),
+      link: `https://twitter.com/i/web/status/${t.id}`,
+      pubDate: t.created_at || new Date().toISOString(),
+      description: t.text.slice(0, 300),
+      feedName: "X: Search",
+      feedCategory: "X (Twitter)",
+    }));
+  } catch (e) {
+    console.error("[API] Twitter:", e.message);
+    return [];
+  }
+}
+
+// ── Telegram Bot API (optional, needs TELEGRAM_BOT_TOKEN) ──────
+
+const TELEGRAM_BOT = process.env.TELEGRAM_BOT_TOKEN || "";
+const TELEGRAM_CHANNELS_LIST = (process.env.TELEGRAM_CHANNELS || "").split(",").map(s => s.trim()).filter(Boolean);
+
+async function fetchTelegramChannelHistory(channelName) {
+  if (!TELEGRAM_BOT) return [];
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/getUpdates?allowed_updates=["channel_post"]&limit=25`);
+    if (!res.ok) throw new Error(`Telegram: ${res.status}`);
+    const json = await res.json();
+    return (json.result || [])
+      .filter(u => u.channel_post?.chat?.username?.toLowerCase() === channelName.toLowerCase())
+      .map(u => ({
+        title: (u.channel_post.text || "").slice(0, 120),
+        link: `https://t.me/${channelName}/${u.channel_post.message_id}`,
+        pubDate: new Date(u.channel_post.date * 1000).toISOString(),
+        description: (u.channel_post.text || "").slice(0, 300),
+        feedName: `TG: ${channelName}`,
+        feedCategory: "Telegram",
+      }));
+  } catch (e) {
+    console.error(`[API] Telegram ${channelName}:`, e.message);
+    return [];
+  }
+}
+
+// ── Mastodon / Fediverse (no key, open API) ────────────────────
+
+const MASTODON_ACCOUNTS = [
+  { instance: "infosec.exchange", account: "jerry", display: "Jerry Bell" },
+  { instance: "infosec.exchange", account: "briankrebs", display: "Brian Krebs" },
+  { instance: "infosec.exchange", account: "BleepingComputer", display: "BleepingComputer" },
+  { instance: "infosec.exchange", account: "malwaretech", display: "MalwareTech" },
+];
+
+async function fetchMastodonTimeline(instance, account) {
+  try {
+    // Look up account ID
+    const lookup = await fetch(`https://${instance}/api/v1/accounts/lookup?acct=${account}`);
+    if (!lookup.ok) throw new Error(`Lookup ${instance}/@${account}: ${lookup.status}`);
+    const acct = await lookup.json();
+
+    // Fetch recent toots
+    const res = await fetch(`https://${instance}/api/v1/accounts/${acct.id}/statuses?limit=15&exclude_replies=true&exclude_reblogs=true`);
+    if (!res.ok) throw new Error(`Statuses: ${res.status}`);
+    const toots = await res.json();
+    return toots.map(t => ({
+      title: stripHtml(t.content || "").slice(0, 120),
+      link: t.url || `https://${instance}/@${account}/${t.id}`,
+      pubDate: t.created_at || new Date().toISOString(),
+      description: stripHtml(t.content || "").slice(0, 300),
+      feedName: `Mastodon: ${account}`,
+      feedCategory: "Mastodon",
+    }));
+  } catch (e) {
+    console.error(`[API] Mastodon ${instance}/@${account}:`, e.message);
+    return [];
+  }
+}
+
+// ── GitHub Security Events (no key, public API) ────────────────
+
+async function fetchGitHubSecurityEvents() {
+  try {
+    // Fetch recent security advisories from GitHub
+    const res = await fetch("https://api.github.com/advisories?per_page=20&type=reviewed", {
+      headers: { Accept: "application/vnd.github+json", "User-Agent": "IntelHub/2.0" },
+    });
+    if (!res.ok) throw new Error(`GitHub Advisories: ${res.status}`);
+    const advisories = await res.json();
+    return advisories.map(a => ({
+      title: `[${(a.severity || "").toUpperCase()}] ${a.summary || a.cve_id || "Advisory"}`,
+      link: a.html_url || "",
+      pubDate: a.published_at || a.updated_at || new Date().toISOString(),
+      description: `${a.cve_id || ""} | ${a.description?.slice(0, 250) || ""} | CVSS: ${a.cvss?.score || "N/A"}`,
+      feedName: "GitHub Advisories",
+      feedCategory: "GitHub",
+    }));
+  } catch (e) {
+    console.error("[API] GitHub Advisories:", e.message);
+    return [];
+  }
+}
+
+// ── NVD / National Vulnerability Database (no key, rate-limited) ─
+
+async function fetchNVDRecent() {
+  try {
+    const fmt = d => d.toISOString().replace(/\.\d+Z$/, ".000");
+    const since = fmt(new Date(Date.now() - 3 * 86400000));
+    const until = fmt(new Date());
+    const res = await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${since}&pubEndDate=${until}&resultsPerPage=25&cvssV3Severity=HIGH`, {
+      headers: { "User-Agent": "IntelHub/2.0" },
+    });
+    if (!res.ok) throw new Error(`NVD: ${res.status}`);
+    const json = await res.json();
+    return (json.vulnerabilities || []).map(v => {
+      const cve = v.cve || {};
+      const desc = cve.descriptions?.find(d => d.lang === "en")?.value || "";
+      const cvss = cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore
+        || cve.metrics?.cvssMetricV30?.[0]?.cvssData?.baseScore || "N/A";
+      return {
+        title: `[NVD] ${cve.id}: ${desc.slice(0, 80)}`,
+        link: `https://nvd.nist.gov/vuln/detail/${cve.id}`,
+        pubDate: cve.published || new Date().toISOString(),
+        description: `CVSS: ${cvss} | ${desc.slice(0, 250)}`,
+        feedName: "NVD (NIST)",
+        feedCategory: "Vulnerability",
+      };
+    });
+  } catch (e) {
+    console.error("[API] NVD:", e.message);
+    return [];
+  }
+}
+
+// ── Social Media API feeds orchestrator ────────────────────────
+
+async function fetchSocialApiFeeds() {
+  const items = [];
+  const stats = {};
+
+  // Reddit (always active, no key needed)
+  const redditResults = await Promise.allSettled(
+    REDDIT_SUBS.map(sub => fetchRedditSubreddit(sub))
+  );
+  for (let i = 0; i < redditResults.length; i++) {
+    const name = `r/${REDDIT_SUBS[i]}`;
+    const r = redditResults[i];
+    if (r.status === "fulfilled" && r.value.length > 0) {
+      items.push(...r.value);
+      stats[name] = { count: r.value.length, status: "ok" };
+    } else if (r.status === "fulfilled") {
+      stats[name] = { count: 0, status: "ok" };
+    } else {
+      console.error(`[API] Reddit ${name}:`, r.reason?.message);
+      stats[name] = { count: 0, status: "error" };
+    }
+  }
+
+  // Twitter API (optional)
+  if (TWITTER_BEARER) {
+    try {
+      const tweets = await fetchTwitterSearch();
+      items.push(...tweets);
+      stats["X: Search"] = { count: tweets.length, status: "ok" };
+    } catch (e) {
+      stats["X: Search"] = { count: 0, status: "error" };
+    }
+  }
+
+  // Telegram Bot API (optional)
+  if (TELEGRAM_BOT && TELEGRAM_CHANNELS_LIST.length > 0) {
+    for (const ch of TELEGRAM_CHANNELS_LIST) {
+      try {
+        const msgs = await fetchTelegramChannelHistory(ch);
+        items.push(...msgs);
+        stats[`TG: ${ch}`] = { count: msgs.length, status: "ok" };
+      } catch (e) {
+        stats[`TG: ${ch}`] = { count: 0, status: "error" };
+      }
+    }
+  }
+
+  // Mastodon (always active, no key needed)
+  const mastodonResults = await Promise.allSettled(
+    MASTODON_ACCOUNTS.map(a => fetchMastodonTimeline(a.instance, a.account))
+  );
+  for (let i = 0; i < mastodonResults.length; i++) {
+    const name = `Mastodon: ${MASTODON_ACCOUNTS[i].account}`;
+    const r = mastodonResults[i];
+    if (r.status === "fulfilled" && r.value.length > 0) {
+      items.push(...r.value);
+      stats[name] = { count: r.value.length, status: "ok" };
+    } else if (r.status === "fulfilled") {
+      stats[name] = { count: 0, status: "ok" };
+    } else {
+      console.error(`[API] ${name}:`, r.reason?.message);
+      stats[name] = { count: 0, status: "error" };
+    }
+  }
+
+  // GitHub Security Advisories (always active, no key needed)
+  try {
+    const ghAdvisories = await fetchGitHubSecurityEvents();
+    items.push(...ghAdvisories);
+    stats["GitHub Advisories"] = { count: ghAdvisories.length, status: "ok" };
+  } catch (e) {
+    console.error("[API] GitHub Advisories:", e.message);
+    stats["GitHub Advisories"] = { count: 0, status: "error" };
+  }
+
+  // NVD / National Vulnerability Database (always active, no key needed)
+  try {
+    const nvdCves = await fetchNVDRecent();
+    items.push(...nvdCves);
+    stats["NVD (NIST)"] = { count: nvdCves.length, status: "ok" };
+  } catch (e) {
+    console.error("[API] NVD:", e.message);
+    stats["NVD (NIST)"] = { count: 0, status: "error" };
+  }
+
+  return { items, stats };
+}
+
 async function fetchAllApiFeeds() {
   const results = await Promise.allSettled([
     fetchThreatFoxRecent(),
@@ -516,6 +799,8 @@ async function fetchChannelFeeds(channelId) {
   if (channel.hasApiFeeds) {
     const apiResults = channelId === "darkweb"
       ? await fetchDarkWebApiFeeds()
+      : channelId === "social"
+      ? await fetchSocialApiFeeds()
       : await fetchAllApiFeeds();
     freshItems.push(...apiResults.items);
     Object.assign(stats, apiResults.stats);
@@ -750,16 +1035,9 @@ function startServer(port) {
       wss = new WebSocketServer({ port });
 
       wss.on("connection", (ws) => {
-        // Default subscription: cyber (backward compat)
-        ws._channels = new Set(["cyber"]);
-        console.log("[WS] Client connected");
-
-        // Send cached data for default channel
-        if (channelCache.cyber) {
-          ws.send(JSON.stringify({ type: "feed-update", channel: "cyber", ...channelCache.cyber }));
-        } else {
-          ws.send(JSON.stringify({ type: "loading" }));
-        }
+        // No default channel — wait for explicit subscribe message
+        ws._channels = new Set();
+        console.log("[WS] Client connected — awaiting subscribe");
 
         ws.on("message", (raw) => {
           try {

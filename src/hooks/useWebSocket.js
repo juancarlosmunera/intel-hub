@@ -65,9 +65,7 @@ export default function useWebSocket(channel = "cyber") {
     setConnected(true);
     setError(null);
 
-    // Subscribe to our channel
-    ws.send(JSON.stringify({ type: "subscribe", channel }));
-
+    // Set up message handler BEFORE subscribing to avoid race condition
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
@@ -94,6 +92,9 @@ export default function useWebSocket(channel = "cyber") {
     };
 
     ws.onerror = () => {};
+
+    // Subscribe AFTER handler is set up
+    ws.send(JSON.stringify({ type: "subscribe", channel }));
   }, [channel]);
 
   useEffect(() => {

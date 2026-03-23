@@ -7,6 +7,7 @@ import { ALERT_KEYWORDS as CYBER_KW } from "../constants/cyberFeeds";
 import { ALERT_KEYWORDS as WORLD_KW } from "../constants/worldFeeds";
 import { ALERT_KEYWORDS as OSINT_KW } from "../constants/osintFeeds";
 import { ALERT_KEYWORDS as DARKWEB_KW } from "../constants/darkwebFeeds";
+import { ALERT_KEYWORDS as SOCIAL_KW } from "../constants/socialFeeds";
 import Pulse from "../components/Pulse";
 
 const CHANNELS = [
@@ -14,6 +15,7 @@ const CHANNELS = [
   { id: "world", label: "World News", icon: "🌐", color: "#64d2ff", path: "/world", keywords: WORLD_KW },
   { id: "osint", label: "OSINT", icon: "🔍", color: "#ff9500", path: "/osint", keywords: OSINT_KW },
   { id: "darkweb", label: "Dark Web", icon: "👁", color: "#ff2255", path: "/darkweb", keywords: DARKWEB_KW },
+  { id: "social", label: "Social Media", icon: "📡", color: "#7c4dff", path: "/social", keywords: SOCIAL_KW },
 ];
 
 function ChannelSummary({ channel }) {

@@ -1,19 +1,20 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, and OSINT intelligence aggregator with multi-channel feeds, severity classification, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 5 channels, 120+ feeds, severity classification, source credibility scoring, and email alerting.
 
 ## Features
 
-- **Multi-channel dashboard** — three dedicated views: Cybersecurity, World News & Geopolitics, and OSINT
-- **50+ RSS feeds** aggregated in real-time via server-side parsing
-- **API integrations** — ThreatFox IoCs, GreyNoise trending threats, VulnCheck KEV
+- **5-channel dashboard** — Cybersecurity, World News & Geopolitics, OSINT, Dark Web, and Social Media
+- **120+ RSS feeds** aggregated in real-time via server-side parsing
+- **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST)
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
-- **Keyword flagging** — 40+ keywords relevant to PCI, payments, and hospitality
+- **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
 - **Real-time updates** — WebSocket push from Node.js backend to React frontend
 - **Email alerts** — configurable SMTP notifications for high-severity items
-- **Persistent cache** — articles stored to disk with deduplication and retention management
-- **Source credibility scoring** — feeds tagged by reliability and bias
-- **Paid feed support** — API key infrastructure for authenticated feeds via environment variables
+- **Persistent cache** — articles stored to disk with deduplication and 48-hour retention
+- **Source credibility scoring** — 4-tier trust system (Primary → Verified → Industry → Unvetted)
+- **Content red flags** — automatic detection of clickbait, misinfo, and disinfo patterns
+- **Zero-key startup** — works immediately with no API keys; optional keys unlock premium sources
 
 ## Quick Start
 
@@ -66,25 +67,61 @@ Open `http://localhost:3000`
 | Threat Intel | Recorded Future, Intel471, DarkReading, Flashpoint, Kaspersky Securelist, Microsoft Threat Intel, Cisco Talos, CrowdStrike, SentinelOne Labs, Unit 42, The Record, BleepingComputer |
 | Independent Cyber | Krebs on Security, Schneier on Security |
 | Conflict Monitoring | Long War Journal |
-| Security Policy | Lawfare |
 | Government Advisory | CISA Alerts |
 | Sanctions | OFAC Updates |
 
+### Dark Web Monitor (20+ feeds)
+
+| Category | Sources |
+|----------|---------|
+| Ransomware Tracking | Ransomware.live, RansomFeed.it, DarkFeed, The DFIR Report |
+| Breach & Leak Journalism | DataBreaches.net, Troy Hunt, CyberScoop |
+| Underground / Threat Intel | Intel 471 Blog, Flashpoint, BushidoToken, Check Point Research, Google Threat Intel, Securelist (Kaspersky), Huntress Blog, Elastic Security Labs |
+| Malware & Botnet Tracking | ANY.RUN Blog, Malwarebytes Blog, Sophos Blog |
+| Exploitation in the Wild | SANS ISC, Rapid7 Blog |
+| Government | UK NCSC Reports |
+| API Feeds | Have I Been Pwned domain search, URLhaus, MalwareBazaar, Feodo Tracker, SSL Blacklist |
+
+### Social Media (16+ feeds)
+
+| Category | Sources | Key Required? |
+|----------|---------|---------------|
+| Reddit (10 subreddits) | r/netsec, r/cybersecurity, r/malware, r/darknet, r/privacy, r/ReverseEngineering, r/AskNetsec, r/blueteamsec, r/computerforensics, r/OSINT | No |
+| Mastodon (4 accounts) | Jerry Bell, Brian Krebs, BleepingComputer, MalwareTech — via infosec.exchange | No |
+| GitHub Advisories | Reviewed CVEs with severity and CVSS scores | No |
+| NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
+| X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
+| Telegram | Bot API channel monitoring (vx-underground, etc.) | Yes (free via @BotFather) |
+
 ## API Integrations
 
-These feeds use dedicated API calls (not RSS) and require free API keys set in `.env`:
+These feeds use dedicated API calls (not RSS):
 
 | API | What it provides | Key required |
 |-----|-----------------|--------------|
-| ThreatFox (abuse.ch) | Recent IoCs — malware, C2, botnet indicators | None (free, always active) |
+| ThreatFox (abuse.ch) | Recent IoCs — malware, C2, botnet indicators | None (always active) |
 | GreyNoise | Internet noise/scan data, trending threat tags | Free community key |
 | VulnCheck | Known Exploited Vulnerabilities, exploit intel | Free community key |
+| Reddit JSON | Subreddit posts via `/r/{sub}/new.json` | None (always active) |
+| Mastodon | Infosec researcher toots via public API | None (always active) |
+| GitHub Advisories | Reviewed security advisories with CVSS | None (always active) |
+| NVD (NIST) | High-severity CVEs, last 3 days | None (rate-limited) |
+| Twitter API v2 | Keyword search across X/Twitter | Bearer token ($100/mo) |
+| Telegram Bot API | Channel message history | Bot token (free) |
 
-## Email Alerts
+## Environment Variables
 
-Configure SMTP in `.env` to receive email notifications when high-severity articles are detected:
+Copy `.env.example` to `.env` and configure as needed. All keys are optional — the app works with zero configuration.
 
 ```env
+# ── API Keys (optional, unlocks enhanced data) ──
+GREYNOISE_API_KEY=          # Free community key from greynoise.io
+VULNCHECK_API_KEY=          # Free community key from vulncheck.com
+TWITTER_BEARER_TOKEN=       # Twitter API v2 Basic ($100/mo)
+TELEGRAM_BOT_TOKEN=         # Free via @BotFather on Telegram
+TELEGRAM_CHANNELS=vxunderground  # Comma-separated channel usernames
+
+# ── Email Alerts (optional) ──
 EMAIL_ENABLED=true
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -93,6 +130,19 @@ SMTP_PASS=your-app-password
 EMAIL_TO=alerts@yourcompany.com
 EMAIL_MIN_SEVERITY=BREACH
 ```
+
+## Source Credibility System
+
+Every feed is assigned a trust tier that displays alongside articles:
+
+| Tier | Label | Description | Example |
+|------|-------|-------------|---------|
+| 1 | PRIMARY | Government agencies, official databases, raw data feeds | CISA, NVD, GitHub Advisories |
+| 2 | VERIFIED | Major outlets with editorial standards, recognized researchers | Krebs, BleepingComputer, Brian Krebs (Mastodon) |
+| 3 | INDUSTRY | Vendor blogs, think tanks, moderated communities | CrowdStrike, r/netsec, Telegram channels |
+| 4 | UNVETTED | Aggregators, less established or unvetted sources | r/darknet, GBHackers |
+
+Content red flags (clickbait, misinfo patterns) are automatically detected and surfaced.
 
 ## Customization
 
@@ -108,7 +158,7 @@ Add entries to the appropriate channel in `server.js`:
 
 1. Add `YOUR_API_KEY=` to `.env` and `.env.example`
 2. Write a `fetchYourFeed()` function in `server.js` with auth headers
-3. Add it to `fetchAllApiFeeds()`
+3. Add it to the appropriate orchestrator (`fetchAllApiFeeds()`, `fetchSocialApiFeeds()`, or `fetchDarkWebApiFeeds()`)
 
 ### Adjust severity rules
 
@@ -116,16 +166,43 @@ Edit the severity classification logic in `src/utils/classify.js` and `src/const
 
 ### Modify alert keywords
 
-Edit keyword arrays in `src/constants/` to flag terms relevant to your environment.
+Edit keyword arrays in `src/constants/` — each channel has its own keyword file:
+- `src/constants/severity.js` — Cybersecurity keywords
+- `src/constants/darkwebFeeds.js` — Dark web alert keywords
+- `src/constants/socialFeeds.js` — Social media alert keywords
+
+### Add Mastodon accounts
+
+Add entries to `MASTODON_ACCOUNTS` in `server.js`:
+
+```js
+{ instance: "infosec.exchange", account: "username", display: "Display Name" },
+```
+
+### Add Reddit subreddits
+
+Add the subreddit name to `REDDIT_SUBS` in `server.js`:
+
+```js
+const REDDIT_SUBS = ["netsec", "cybersecurity", /* ... */, "your-subreddit"];
+```
+
+Then add the feed name to `src/constants/socialFeeds.js` and trust tier to `src/constants/sourceCredibility.js`.
 
 ## Architecture
 
 ```
 React (Vite) ←—WebSocket—→ Node.js Server
                               ├── RSS Parser (rss-parser)
-                              ├── API Fetchers (ThreatFox, GreyNoise, VulnCheck)
+                              ├── API Fetchers
+                              │   ├── ThreatFox, GreyNoise, VulnCheck
+                              │   ├── Reddit JSON, Mastodon, GitHub Advisories
+                              │   ├── NVD (NIST), Twitter API, Telegram Bot API
+                              │   └── Have I Been Pwned, URLhaus, MalwareBazaar
                               ├── Severity Classifier
-                              ├── Dedup & Retention Engine
+                              ├── Source Credibility Scorer
+                              ├── Content Red Flag Detector
+                              ├── Dedup & Retention Engine (48h)
                               ├── JSON Persistence (data/)
                               └── SMTP Alerter (nodemailer)
 ```

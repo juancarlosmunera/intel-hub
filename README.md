@@ -1,11 +1,11 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 5 channels, 120+ feeds, severity classification, source credibility scoring, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 6 channels, 150+ feeds, severity classification, source credibility scoring, political bias tagging, and email alerting.
 
 ## Features
 
-- **5-channel dashboard** — Cybersecurity, World News & Geopolitics, OSINT, Dark Web, and Social Media
-- **120+ RSS feeds** aggregated in real-time via server-side parsing
+- **6-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, and Social Media
+- **150+ RSS feeds** aggregated in real-time via server-side parsing
 - **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST)
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
 - **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
@@ -13,6 +13,7 @@ Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intellig
 - **Email alerts** — configurable SMTP notifications for high-severity items
 - **Persistent cache** — articles stored to disk with deduplication and 48-hour retention
 - **Source credibility scoring** — 4-tier trust system (Primary → Verified → Industry → Unvetted)
+- **Political bias tagging** — every news source labeled Left / Lean Left / Center / Lean Right / Right / Independent
 - **Content red flags** — automatic detection of clickbait, misinfo, and disinfo patterns
 - **Zero-key startup** — works immediately with no API keys; optional keys unlock premium sources
 
@@ -44,20 +45,30 @@ Open `http://localhost:3000`
 | PCI / Compliance | PCI SSC Blog, Finextra Security, Payments Dive |
 | API Feeds | ThreatFox IoCs (abuse.ch), GreyNoise Trending, VulnCheck KEV |
 
-### World News & Geopolitics (35+ feeds)
+### World News (40+ feeds)
 
 | Category | Sources |
 |----------|---------|
 | Wire Services | Reuters, AP News, UPI |
-| International | France24, Nikkei Asia, BBC World |
+| International | France24, Nikkei Asia, BBC World, Middle East Eye |
 | US News | CNN, NPR, Fox News, New York Post, NewsNation |
 | US Politics | The Hill, Wall Street Journal, Axios, Washington Examiner, The Dispatch, National Review |
 | Geopolitics | Foreign Affairs, Foreign Policy, The Diplomat, War on the Rocks |
-| Think Tanks | RAND, CSIS, Council on Foreign Relations, Stimson Center, Atlantic Council, Heritage Foundation, Hudson Institute, Cato Institute |
+| Think Tanks | RAND, CSIS, Council on Foreign Relations, Stimson Center, Atlantic Council, Heritage Foundation, Hudson Institute |
 | Independent Journalism | Racket News (Matt Taibbi), Glenn Greenwald, Chris Hedges Report, Seymour Hersh, The Orf Report (Matt Orfalea), The Grayzone, Consortium News |
-| Defense | Defense One, Breaking Defense |
+| Defense | Defense One, Breaking Defense, USNI News, The Aviationist, 19FortyFive, SOF News |
+| Conflict Monitor | Alma Research Center |
 
-### OSINT (20+ feeds)
+### Geopolitics & Defense (20 feeds)
+
+| Category | Sources |
+|----------|---------|
+| Geopolitics | Foreign Affairs, Foreign Policy, The Diplomat, War on the Rocks |
+| Think Tanks | RAND, CSIS, Council on Foreign Relations, Stimson Center, Atlantic Council, Heritage Foundation, Hudson Institute |
+| Defense | Defense One, Breaking Defense, USNI News, The Aviationist, 19FortyFive, SOF News |
+| Conflict Monitor | Middle East Eye, Alma Research Center, Long War Journal |
+
+### OSINT (24+ feeds)
 
 | Category | Sources |
 |----------|---------|
@@ -144,6 +155,22 @@ Every feed is assigned a trust tier that displays alongside articles:
 
 Content red flags (clickbait, misinfo patterns) are automatically detected and surfaced.
 
+## Political Bias Tags
+
+Every news and editorial source is tagged with its political leaning. Technical/cybersec feeds show no tag.
+
+| Tag | Color | Examples |
+|-----|-------|---------|
+| LEFT | Blue | CNN |
+| LEAN LEFT | Light Blue | NPR, Foreign Policy, Middle East Eye, Ars Technica |
+| CENTER | Gray | Reuters, AP, BBC, RAND, CSIS, Defense One, Bellingcat |
+| LEAN RIGHT | Orange | NY Post, The Dispatch, Atlantic Council, 19FortyFive, Alma Research |
+| RIGHT | Red | Fox News, Washington Examiner, National Review, Heritage Foundation |
+| INDEPENDENT | Purple | Racket News (Taibbi), Glenn Greenwald, Seymour Hersh, The Grayzone |
+| NONPARTISAN | Hidden | All technical, cybersec, and data feeds (tag not shown in UI) |
+
+Bias classifications are in `src/constants/sourceBias.js`.
+
 ## Customization
 
 ### Add RSS feeds
@@ -200,7 +227,8 @@ React (Vite) ←—WebSocket—→ Node.js Server
                               │   ├── NVD (NIST), Twitter API, Telegram Bot API
                               │   └── Have I Been Pwned, URLhaus, MalwareBazaar
                               ├── Severity Classifier
-                              ├── Source Credibility Scorer
+                              ├── Source Credibility Scorer (4-tier)
+                              ├── Political Bias Tagger (7 categories)
                               ├── Content Red Flag Detector
                               ├── Dedup & Retention Engine (48h)
                               ├── JSON Persistence (data/)

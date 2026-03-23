@@ -1130,3 +1130,20 @@ function startServer(port) {
 }
 
 startServer(PORT);
+
+// ── Graceful Shutdown ──────────────────────────────────────────
+function shutdown(signal) {
+  console.log(`\n[SERVER] ${signal} received — shutting down...`);
+  if (wss) {
+    wss.clients.forEach((ws) => ws.terminate());
+    wss.close(() => {
+      console.log("[SERVER] WebSocket server closed");
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(0), 3000); // force exit after 3s
+  } else {
+    process.exit(0);
+  }
+}
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));

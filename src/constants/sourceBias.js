@@ -37,6 +37,8 @@ export const SOURCE_BIAS = {
   "PCI SSC Blog": "N",
   "Krebs on Security": "N",
   "Schneier on Security": "N",
+  "TechCrunch Security": "LL",
+  "The Tech Buzz": "N",
   "Bleeping Computer": "N",
   "BleepingComputer": "N",
   "The Hacker News": "N",

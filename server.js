@@ -49,6 +49,8 @@ const CHANNELS = {
       { name: "Cyber Security News", url: "https://cybersecuritynews.com/feed/", category: "Threat Intel" },
       { name: "Graham Cluley", url: "https://grahamcluley.com/feed/", category: "Threat Intel" },
       { name: "Schneier on Security", url: "https://www.schneier.com/feed/", category: "Threat Intel" },
+      { name: "TechCrunch Security", url: "https://techcrunch.com/category/security/feed/", category: "Threat Intel" },
+      { name: "The Tech Buzz", url: "https://www.techbuzz.ai/api/rss/articles", category: "Threat Intel" },
       // Advisories & Vulnerability Databases
       { name: "CISA Advisories", url: "https://www.cisa.gov/cybersecurity-advisories/all.xml", category: "Advisory" },
       { name: "NIST Cyber Insights", url: "https://www.nist.gov/blogs/cybersecurity-insights/rss.xml", category: "Advisory" },

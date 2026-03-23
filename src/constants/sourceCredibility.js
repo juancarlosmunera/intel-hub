@@ -38,6 +38,8 @@ export const SOURCE_TRUST = {
   // Tier 2: Established security journalism & research
   "Krebs on Security": 2,
   "Schneier on Security": 2,
+  "TechCrunch Security": 2,
+  "The Tech Buzz": 3,
   "Bleeping Computer": 2,
   "The Hacker News": 2,
   "Dark Reading": 2,

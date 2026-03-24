@@ -319,9 +319,17 @@ const CHANNELS = {
     feeds: [
       // Reddit: fetched via JSON API in fetchSocialApiFeeds() — no RSS feeds needed
       // X (Twitter): RSS bridges are dead (API lockdown). Set TWITTER_BEARER_TOKEN to enable.
-      // Telegram: Set TELEGRAM_BOT_TOKEN (free via @BotFather) to enable.
     ],
-    hasApiFeeds: true, // Reddit JSON (always) + optional Twitter API + Telegram Bot API
+    hasApiFeeds: true, // Reddit JSON (always) + optional Twitter API
+  },
+
+  chatfeeds: {
+    label: "Chat Feeds",
+    dbFile: "articles_chatfeeds.json",
+    feeds: [
+      // Telegram: fetched via public preview scraper in fetchChatFeedsApiFeeds()
+    ],
+    hasApiFeeds: true, // Telegram public scraper (always) + optional Bot API
   },
 };
 
@@ -995,26 +1003,6 @@ async function fetchSocialApiFeeds() {
     }
   }
 
-  // Telegram (always active — public preview scraper, no token needed)
-  if (TELEGRAM_ACTIVE.length > 0) {
-    const tgResults = await Promise.allSettled(
-      TELEGRAM_ACTIVE.map(ch => fetchTelegramChannelHistory(ch.handle))
-    );
-    for (let i = 0; i < tgResults.length; i++) {
-      const ch = TELEGRAM_ACTIVE[i];
-      const r = tgResults[i];
-      if (r.status === "fulfilled" && r.value.length > 0) {
-        items.push(...r.value);
-        stats[`TG: ${ch.label}`] = { count: r.value.length, status: "ok" };
-      } else if (r.status === "fulfilled") {
-        stats[`TG: ${ch.label}`] = { count: 0, status: "ok" };
-      } else {
-        console.error(`[API] Telegram ${ch.label}:`, r.reason?.message);
-        stats[`TG: ${ch.label}`] = { count: 0, status: "error" };
-      }
-    }
-  }
-
   // Mastodon (always active, no key needed)
   const mastodonResults = await Promise.allSettled(
     MASTODON_ACCOUNTS.map(a => fetchMastodonTimeline(a.instance, a.account))
@@ -1084,6 +1072,33 @@ async function fetchAllApiFeeds() {
   return { items, stats };
 }
 
+async function fetchChatFeedsApiFeeds() {
+  const items = [];
+  const stats = {};
+
+  // Telegram (always active — public preview scraper, no token needed)
+  if (TELEGRAM_ACTIVE.length > 0) {
+    const tgResults = await Promise.allSettled(
+      TELEGRAM_ACTIVE.map(ch => fetchTelegramChannelHistory(ch.handle))
+    );
+    for (let i = 0; i < tgResults.length; i++) {
+      const ch = TELEGRAM_ACTIVE[i];
+      const r = tgResults[i];
+      if (r.status === "fulfilled" && r.value.length > 0) {
+        items.push(...r.value);
+        stats[`TG: ${ch.label}`] = { count: r.value.length, status: "ok" };
+      } else if (r.status === "fulfilled") {
+        stats[`TG: ${ch.label}`] = { count: 0, status: "ok" };
+      } else {
+        console.error(`[API] Telegram ${ch.label}:`, r.reason?.message);
+        stats[`TG: ${ch.label}`] = { count: 0, status: "error" };
+      }
+    }
+  }
+
+  return { items, stats };
+}
+
 // ═══════════════════════════════════════════════════════════════
 // FEED FETCHING (PER CHANNEL)
 // ═══════════════════════════════════════════════════════════════
@@ -1131,6 +1146,8 @@ async function fetchChannelFeeds(channelId) {
       ? await fetchDarkWebApiFeeds()
       : channelId === "social"
       ? await fetchSocialApiFeeds()
+      : channelId === "chatfeeds"
+      ? await fetchChatFeedsApiFeeds()
       : await fetchAllApiFeeds();
     freshItems.push(...apiResults.items);
     Object.assign(stats, apiResults.stats);
@@ -1409,9 +1426,168 @@ for (const [id, channel] of Object.entries(CHANNELS)) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// INGEST API — Universal webhook endpoint for any chat platform
+// ═══════════════════════════════════════════════════════════════
+//
+// POST /api/ingest — accepts messages from any source
+// Body: { source, group, message, timestamp, channel, url }
+//
+// POST /api/ingest/batch — accepts an array of messages
+// Body: [{ source, group, message, timestamp, channel, url }, ...]
+//
+// Auth: requires INGEST_API_KEY in .env (if set)
+
+const INGEST_API_KEY = process.env.INGEST_API_KEY || "";
+
+function handleIngestRequest(req, res) {
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.writeHead(405, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Method not allowed" }));
+    return;
+  }
+
+  // Auth check
+  if (INGEST_API_KEY) {
+    const auth = req.headers.authorization || "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (token !== INGEST_API_KEY) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid or missing API key" }));
+      return;
+    }
+  }
+
+  let body = "";
+  req.on("data", chunk => { body += chunk; });
+  req.on("end", () => {
+    try {
+      const data = JSON.parse(body);
+      const messages = Array.isArray(data) ? data : [data];
+      const ingested = [];
+
+      for (const msg of messages) {
+        if (!msg.message && !msg.title) {
+          continue; // skip empty messages
+        }
+
+        const text = msg.message || msg.title || "";
+        const source = msg.source || "unknown";
+        const group = msg.group || "";
+        const targetChannel = msg.channel || "chatfeeds";
+
+        // Validate target channel exists
+        if (!CHANNELS[targetChannel]) {
+          continue;
+        }
+
+        const article = {
+          title: text.slice(0, 120),
+          link: msg.url || msg.link || "",
+          pubDate: msg.timestamp || new Date().toISOString(),
+          description: text.slice(0, 500),
+          feedName: group ? `${source}: ${group}` : source,
+          feedCategory: source,
+        };
+
+        // Merge into channel cache and persist
+        const channel = CHANNELS[targetChannel];
+        const db = loadArticleDb(channel.dbFile);
+        const key = dedupeKey(article);
+        const exists = db.articles.some(a => dedupeKey(a) === key);
+
+        if (!exists) {
+          db.articles.unshift(article);
+          if (db.articles.length > MAX_ARTICLES) {
+            db.articles = db.articles.slice(0, MAX_ARTICLES);
+          }
+          saveArticleDb(channel.dbFile, db);
+
+          // Update live cache and broadcast to connected clients
+          if (!channelCache[targetChannel]) {
+            channelCache[targetChannel] = { articles: [], stats: {} };
+          }
+          channelCache[targetChannel].articles.unshift(article);
+          broadcastAll(targetChannel, channelCache[targetChannel]);
+
+          ingested.push(article.title);
+        }
+      }
+
+      console.log(`[INGEST] Received ${messages.length} message(s), ingested ${ingested.length} new`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, received: messages.length, ingested: ingested.length }));
+    } catch (e) {
+      console.error("[INGEST] Parse error:", e.message);
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Invalid JSON body" }));
+    }
+  });
+}
+
+function handleApiRequest(req, res) {
+  const url = req.url?.split("?")[0];
+
+  if (url === "/api/ingest" || url === "/api/ingest/batch") {
+    return handleIngestRequest(req, res);
+  }
+
+  if (url === "/api/health") {
+    const mem = getMemoryUsageMB();
+    const totalArticles = Object.values(channelCache).reduce((sum, c) => sum + (c?.articles?.length || 0), 0);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({
+      status: "ok",
+      uptime: process.uptime(),
+      memory_mb: Math.round(mem),
+      memory_cap_mb: MEMORY_CAP_MB,
+      channels: Object.keys(CHANNELS).length,
+      total_articles: totalArticles,
+      telegram_active: TELEGRAM_ACTIVE.length,
+    }));
+    return;
+  }
+
+  if (url === "/api/channels") {
+    const summary = {};
+    for (const [id, ch] of Object.entries(CHANNELS)) {
+      summary[id] = {
+        label: ch.label,
+        feeds: ch.feeds.length,
+        articles: channelCache[id]?.articles?.length || 0,
+      };
+    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(summary));
+    return;
+  }
+
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ error: "Not found" }));
+}
+
 function startServer(port) {
-  const probe = createServer();
-  probe.once("error", (err) => {
+  // HTTP server for ingest API + health endpoints
+  const httpServer = createServer((req, res) => {
+    if (req.url?.startsWith("/api/")) {
+      return handleApiRequest(req, res);
+    }
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Intel Hub running. WebSocket on this port, API at /api/*");
+  });
+
+  httpServer.once("error", (err) => {
     if (err.code === "EADDRINUSE") {
       console.error(`[SERVER] Port ${port} in use, trying ${port + 1}...`);
       startServer(port + 1);
@@ -1419,59 +1595,59 @@ function startServer(port) {
       throw err;
     }
   });
-  probe.listen(port, () => {
-    probe.close(() => {
-      wss = new WebSocketServer({ port });
 
-      wss.on("connection", (ws) => {
-        // No default channel — wait for explicit subscribe message
-        ws._channels = new Set();
-        console.log("[WS] Client connected — awaiting subscribe");
+  httpServer.listen(port, () => {
+    // Attach WebSocket server to the HTTP server
+    wss = new WebSocketServer({ server: httpServer });
 
-        ws.on("message", (raw) => {
-          try {
-            const msg = JSON.parse(raw);
+    wss.on("connection", (ws) => {
+      ws._channels = new Set();
+      console.log("[WS] Client connected — awaiting subscribe");
 
-            if (msg.type === "subscribe" && CHANNELS[msg.channel]) {
-              ws._channels.add(msg.channel);
-              const cached = channelCache[msg.channel];
-              console.log(`[WS] Client subscribed to ${msg.channel} — cache: ${cached ? cached.articles?.length + " articles" : "empty"}`);
-              // Send cached data immediately
-              if (cached) {
-                ws.send(JSON.stringify({ type: "feed-update", channel: msg.channel, ...cached }));
-              } else {
-                ws.send(JSON.stringify({ type: "loading" }));
-              }
+      ws.on("message", (raw) => {
+        try {
+          const msg = JSON.parse(raw);
+
+          if (msg.type === "subscribe" && CHANNELS[msg.channel]) {
+            ws._channels.add(msg.channel);
+            const cached = channelCache[msg.channel];
+            console.log(`[WS] Client subscribed to ${msg.channel} — cache: ${cached ? cached.articles?.length + " articles" : "empty"}`);
+            if (cached) {
+              ws.send(JSON.stringify({ type: "feed-update", channel: msg.channel, ...cached }));
+            } else {
+              ws.send(JSON.stringify({ type: "loading" }));
             }
-
-            if (msg.type === "refresh") {
-              const ch = msg.channel || "cyber";
-              if (CHANNELS[ch]) refreshChannel(ch);
-            }
-          } catch {
-            // ignore invalid messages
           }
-        });
 
-        ws.on("close", () => console.log("[WS] Client disconnected"));
+          if (msg.type === "refresh") {
+            const ch = msg.channel || "cyber";
+            if (CHANNELS[ch]) refreshChannel(ch);
+          }
+        } catch {
+          // ignore invalid messages
+        }
       });
 
-      // Initial fetch for ALL channels, then periodic refresh
-      refreshAllChannels();
-      setInterval(refreshAllChannels, REFRESH_INTERVAL);
-
-      // Telegram channel health check — every 6 hours
-      if (TELEGRAM_ACTIVE.length > 0) {
-        runTelegramHealthCheck(); // initial check on startup
-        setInterval(runTelegramHealthCheck, TG_HEALTH_INTERVAL);
-      }
-
-      const totalFeeds = Object.values(CHANNELS).reduce((sum, ch) => sum + ch.feeds.length, 0);
-      const totalArticles = Object.values(channelCache).reduce((sum, c) => sum + (c?.articles?.length || 0), 0);
-      console.log(`[SERVER] Intel Hub running on ws://localhost:${port}`);
-      console.log(`[SERVER] ${Object.keys(CHANNELS).length} channels, ${totalFeeds} total feeds, refresh every ${REFRESH_INTERVAL / 60000}m`);
-      console.log(`[MEMORY] ${getMemoryUsageMB().toFixed(0)} MB used | cap: ${MEMORY_CAP_MB} MB | ${totalArticles} articles cached`);
+      ws.on("close", () => console.log("[WS] Client disconnected"));
     });
+
+    // Initial fetch for ALL channels, then periodic refresh
+    refreshAllChannels();
+    setInterval(refreshAllChannels, REFRESH_INTERVAL);
+
+    // Telegram channel health check — every 6 hours
+    if (TELEGRAM_ACTIVE.length > 0) {
+      runTelegramHealthCheck();
+      setInterval(runTelegramHealthCheck, TG_HEALTH_INTERVAL);
+    }
+
+    const totalFeeds = Object.values(CHANNELS).reduce((sum, ch) => sum + ch.feeds.length, 0);
+    const totalArticles = Object.values(channelCache).reduce((sum, c) => sum + (c?.articles?.length || 0), 0);
+    console.log(`[SERVER] Intel Hub running on http://localhost:${port}`);
+    console.log(`[SERVER] ${Object.keys(CHANNELS).length} channels, ${totalFeeds} total feeds, refresh every ${REFRESH_INTERVAL / 60000}m`);
+    console.log(`[SERVER] Ingest API: POST http://localhost:${port}/api/ingest`);
+    console.log(`[SERVER] Health: GET http://localhost:${port}/api/health`);
+    console.log(`[MEMORY] ${getMemoryUsageMB().toFixed(0)} MB used | cap: ${MEMORY_CAP_MB} MB | ${totalArticles} articles cached`);
   });
 }
 
@@ -1483,10 +1659,10 @@ function shutdown(signal) {
   if (wss) {
     wss.clients.forEach((ws) => ws.terminate());
     wss.close(() => {
-      console.log("[SERVER] WebSocket server closed");
+      console.log("[SERVER] WebSocket + HTTP server closed");
       process.exit(0);
     });
-    setTimeout(() => process.exit(0), 3000); // force exit after 3s
+    setTimeout(() => process.exit(0), 3000);
   } else {
     process.exit(0);
   }

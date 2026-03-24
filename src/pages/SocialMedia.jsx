@@ -6,7 +6,7 @@ export default function SocialMedia() {
     <FeedPage
       channel="social"
       title="SOCIAL MEDIA INTEL"
-      subtitle="Reddit · Mastodon · GitHub Advisories · NVD · X · Telegram"
+      subtitle="Reddit · Mastodon · GitHub Advisories · NVD · X"
       feeds={FEEDS}
       alertKeywords={ALERT_KEYWORDS}
       accentColor="#7c4dff"

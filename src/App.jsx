@@ -6,6 +6,7 @@ import WorldNews from "./pages/WorldNews";
 import OSINT from "./pages/OSINT";
 import DarkWeb from "./pages/DarkWeb";
 import SocialMedia from "./pages/SocialMedia";
+import ChatFeeds from "./pages/ChatFeeds";
 import Geopolitics from "./pages/Geopolitics";
 import "./styles/global.css";
 
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="osint" element={<OSINT />} />
           <Route path="darkweb" element={<DarkWeb />} />
           <Route path="social" element={<SocialMedia />} />
+          <Route path="chatfeeds" element={<ChatFeeds />} />
         </Route>
       </Routes>
     </BrowserRouter>

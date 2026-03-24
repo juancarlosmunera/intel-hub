@@ -12,19 +12,6 @@ export const FEEDS = [
   { name: "r/OSINT", category: "Reddit" },
   // ── X (Twitter) — requires TWITTER_BEARER_TOKEN in .env ──
   { name: "X: Search", category: "X (Twitter)" },
-  // ── Telegram (public preview scraper, no key needed) ──
-  { name: "TG: vx-underground", category: "Telegram" },
-  { name: "TG: HackGit", category: "Telegram" },
-  { name: "TG: DARKFEED", category: "Telegram" },
-  { name: "TG: Daily Dark Web", category: "Telegram" },
-  { name: "TG: RansomFeed News", category: "Telegram" },
-  { name: "TG: RansomLook", category: "Telegram" },
-  { name: "TG: Intel Slava", category: "Telegram" },
-  { name: "TG: OsintTV", category: "Telegram" },
-  { name: "TG: The Hacker News", category: "Telegram" },
-  { name: "TG: SecAtor (RU)", category: "Telegram" },
-  { name: "TG: Bug Bounty Hunter", category: "Telegram" },
-  { name: "TG: Bug Bounty Channel", category: "Telegram" },
   // ── Mastodon (no key needed) ──
   { name: "Mastodon: jerry", category: "Mastodon" },
   { name: "Mastodon: briankrebs", category: "Mastodon" },

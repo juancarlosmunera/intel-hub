@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const WS_PORTS = [3001, 3002, 3003];
+const WS_PORTS = [3001, 3002, 3003, 3004, 3005];
 
 // Shared working port — once discovered, all hooks use it instantly
 let workingPort = null;

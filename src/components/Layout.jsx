@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: "/osint", icon: "🔍", label: "OSINT" },
   { to: "/darkweb", icon: "👁", label: "Dark Web" },
   { to: "/social", icon: "📡", label: "Social Media" },
+  { to: "/chatfeeds", icon: "💬", label: "Chat Feeds" },
 ];
 
 export default function Layout() {

@@ -222,7 +222,19 @@ export const SOURCE_TRUST = {
   "r/privacy": 4,
 
   // Telegram — inherently less verifiable
-  "TG: vx-underground": 3,
+  // ── Telegram — public channel scraper ──
+  "TG: vx-underground": 2,
+  "TG: HackGit": 3,
+  "TG: DARKFEED": 2,
+  "TG: Daily Dark Web": 3,
+  "TG: RansomFeed News": 2,
+  "TG: RansomLook": 2,
+  "TG: Intel Slava": 4,
+  "TG: OsintTV": 3,
+  "TG: The Hacker News": 2,
+  "TG: SecAtor (RU)": 3,
+  "TG: Bug Bounty Hunter": 3,
+  "TG: Bug Bounty Channel": 3,
 
   // ── Mastodon — same trust as their other platform presence ──
   "Mastodon: jerry": 2,

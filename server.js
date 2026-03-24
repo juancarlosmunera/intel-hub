@@ -574,10 +574,256 @@ async function fetchTwitterSearch() {
 // ── Telegram Bot API (optional, needs TELEGRAM_BOT_TOKEN) ──────
 
 const TELEGRAM_BOT = process.env.TELEGRAM_BOT_TOKEN || "";
-const TELEGRAM_CHANNELS_LIST = (process.env.TELEGRAM_CHANNELS || "").split(",").map(s => s.trim()).filter(Boolean);
 
-async function fetchTelegramChannelHistory(channelName) {
+// Primary channels — actively monitored
+const TELEGRAM_CHANNELS_PRIMARY = [
+  // Threat Intel & Malware
+  { handle: "vxunderground", category: "Threat Intel", label: "vx-underground" },
+  { handle: "hackgit", category: "Threat Intel", label: "HackGit" },
+  { handle: "DarkfeedNews", category: "Ransomware", label: "DARKFEED" },
+  { handle: "dailydarkweb", category: "Dark Web", label: "Daily Dark Web" },
+  // Ransomware Tracking
+  { handle: "RansomFeedNews", category: "Ransomware", label: "RansomFeed News" },
+  { handle: "ransomlook", category: "Ransomware", label: "RansomLook" },
+  // OSINT & Geopolitics
+  { handle: "intelslava", category: "Geopolitics", label: "Intel Slava" },
+  { handle: "OsintTv", category: "OSINT", label: "OsintTV" },
+  // Cybersec News
+  { handle: "thehackernews", category: "Cyber News", label: "The Hacker News" },
+  { handle: "true_secator", category: "Threat Intel", label: "SecAtor (RU)" },
+  // Bug Bounty & Vuln Disclosure
+  { handle: "thebugbountyhunter", category: "Bug Bounty", label: "Bug Bounty Hunter" },
+  { handle: "bug_bounty_channel", category: "Bug Bounty", label: "Bug Bounty Channel" },
+];
+
+// Backup pool — rotated in when primary channels go stale/dead
+const TELEGRAM_CHANNELS_BACKUP = [
+  { handle: "secnewsru", category: "Cyber News", label: "Security News (RU)" },
+  { handle: "f6_cybersecurity", category: "Threat Intel", label: "F6 Cybersecurity" },
+  { handle: "cloudandcybersecurity", category: "Cyber News", label: "Cloud & Cybersecurity" },
+  { handle: "topcybersecurity", category: "Cyber News", label: "Top Cybersecurity" },
+  { handle: "teammatrixs", category: "Cyber News", label: "Learn Cybersecurity" },
+];
+
+// Channel health tracking — persisted to disk
+const TG_HEALTH_FILE = path.join(DATA_DIR, "telegram_health.json");
+
+function loadTelegramHealth() {
+  try {
+    return JSON.parse(fs.readFileSync(TG_HEALTH_FILE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveTelegramHealth(health) {
+  fs.writeFileSync(TG_HEALTH_FILE, JSON.stringify(health, null, 2));
+}
+
+// Active channel list — starts with primary, rotates as needed
+let TELEGRAM_ACTIVE = [...TELEGRAM_CHANNELS_PRIMARY];
+
+function initTelegramActiveList() {
+  const health = loadTelegramHealth();
+  const now = Date.now();
+  const staleMs = 7 * 24 * 60 * 60 * 1000; // 7 days without success = stale
+
+  // Restore any previously disabled channels that might be back
+  // and filter out channels marked dead
+  const active = [];
+  const deadHandles = new Set();
+
+  for (const ch of TELEGRAM_CHANNELS_PRIMARY) {
+    const h = health[ch.handle];
+    if (h && h.status === "dead" && (now - h.lastCheck) < staleMs) {
+      deadHandles.add(ch.handle);
+      console.log(`[TG-HEALTH] ${ch.label} (@${ch.handle}) — skipped (dead since ${new Date(h.deadSince).toISOString().slice(0, 10)})`);
+    } else {
+      active.push(ch);
+    }
+  }
+
+  // Fill gaps from backup pool
+  const needed = TELEGRAM_CHANNELS_PRIMARY.length - active.length;
+  if (needed > 0) {
+    const available = TELEGRAM_CHANNELS_BACKUP.filter(b => !deadHandles.has(b.handle));
+    const replacements = available.slice(0, needed);
+    active.push(...replacements);
+    for (const r of replacements) {
+      console.log(`[TG-HEALTH] Rotated in backup: ${r.label} (@${r.handle})`);
+    }
+  }
+
+  TELEGRAM_ACTIVE = active;
+}
+
+// Check if a Telegram channel is reachable via public preview
+async function checkTelegramChannelHealth(handle) {
+  try {
+    const res = await fetch(`https://t.me/s/${handle}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return { alive: false, reason: `HTTP ${res.status}` };
+    const html = await res.text();
+    // Check for "channel not found" or empty channel indicators
+    if (html.includes("tgme_channel_info_counter") || html.includes("tgme_widget_message")) {
+      return { alive: true };
+    }
+    if (html.includes("not found") || html.includes("Page not found")) {
+      return { alive: false, reason: "channel not found" };
+    }
+    return { alive: true }; // assume alive if page loaded
+  } catch (e) {
+    return { alive: false, reason: e.message };
+  }
+}
+
+// Scheduled health check — runs every 6 hours
+const TG_HEALTH_INTERVAL = 6 * 60 * 60 * 1000;
+const TG_CONSECUTIVE_FAILS_BEFORE_DEAD = 4; // 4 checks × 6h = 24h of failures
+
+async function runTelegramHealthCheck() {
+  if (!TELEGRAM_BOT) return;
+  console.log("[TG-HEALTH] Running channel health check...");
+  const health = loadTelegramHealth();
+  const now = Date.now();
+  let changes = false;
+
+  // Check all primary channels
+  for (const ch of TELEGRAM_CHANNELS_PRIMARY) {
+    const result = await checkTelegramChannelHealth(ch.handle);
+    const prev = health[ch.handle] || { consecutiveFails: 0, status: "unknown" };
+
+    if (result.alive) {
+      health[ch.handle] = {
+        status: "alive",
+        lastSuccess: now,
+        lastCheck: now,
+        consecutiveFails: 0,
+      };
+      if (prev.status === "dead") {
+        console.log(`[TG-HEALTH] ✓ ${ch.label} (@${ch.handle}) — RECOVERED`);
+        changes = true;
+      }
+    } else {
+      const fails = (prev.consecutiveFails || 0) + 1;
+      health[ch.handle] = {
+        ...prev,
+        status: fails >= TG_CONSECUTIVE_FAILS_BEFORE_DEAD ? "dead" : "failing",
+        lastCheck: now,
+        lastFailReason: result.reason,
+        consecutiveFails: fails,
+        deadSince: fails >= TG_CONSECUTIVE_FAILS_BEFORE_DEAD ? (prev.deadSince || now) : undefined,
+      };
+      if (fails >= TG_CONSECUTIVE_FAILS_BEFORE_DEAD && prev.status !== "dead") {
+        console.log(`[TG-HEALTH] ✗ ${ch.label} (@${ch.handle}) — MARKED DEAD (${result.reason})`);
+        changes = true;
+      } else if (fails < TG_CONSECUTIVE_FAILS_BEFORE_DEAD) {
+        console.log(`[TG-HEALTH] ⚠ ${ch.label} (@${ch.handle}) — failing (${fails}/${TG_CONSECUTIVE_FAILS_BEFORE_DEAD}, ${result.reason})`);
+      }
+    }
+
+    // Rate limit: small delay between checks to avoid being blocked
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  // Also check backup channels periodically
+  for (const ch of TELEGRAM_CHANNELS_BACKUP) {
+    const result = await checkTelegramChannelHealth(ch.handle);
+    health[ch.handle] = {
+      status: result.alive ? "alive" : "dead",
+      lastCheck: now,
+      lastFailReason: result.alive ? undefined : result.reason,
+    };
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  saveTelegramHealth(health);
+
+  if (changes) {
+    console.log("[TG-HEALTH] Channel list changed — rebuilding active list");
+    initTelegramActiveList();
+  }
+
+  // Log summary
+  const alive = Object.entries(health).filter(([, v]) => v.status === "alive").length;
+  const dead = Object.entries(health).filter(([, v]) => v.status === "dead").length;
+  const failing = Object.entries(health).filter(([, v]) => v.status === "failing").length;
+  console.log(`[TG-HEALTH] Summary: ${alive} alive, ${failing} failing, ${dead} dead — ${TELEGRAM_ACTIVE.length} active channels`);
+}
+
+// Build the active channel list from env override or defaults
+(() => {
+  const envOverride = (process.env.TELEGRAM_CHANNELS || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (envOverride.length > 0) {
+    TELEGRAM_ACTIVE = envOverride.map(h => ({ handle: h, category: "Telegram", label: h }));
+  } else {
+    initTelegramActiveList();
+  }
+})();
+
+// Scrape public preview page — works for any public channel, no token needed
+function stripTgHtml(raw) {
+  return raw
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchTelegramPublicPreview(channelName) {
+  const meta = TELEGRAM_ACTIVE.find(ch => ch.handle === channelName);
+  const label = meta ? meta.label : channelName;
+  const category = meta ? meta.category : "Telegram";
+  try {
+    const res = await fetch(`https://t.me/s/${channelName}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    // Extract all data-post IDs
+    const postIds = [...html.matchAll(/data-post="([^"]+)"/g)].map(m => m[1]);
+    // Extract all message text blocks
+    const texts = [...html.matchAll(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/g)].map(m => stripTgHtml(m[1]));
+    // Extract all timestamps
+    const times = [...html.matchAll(/<time[^>]*datetime="([^"]+)"/g)].map(m => m[1]);
+
+    // Zip them together — texts may be more than postIds (some msgs have nested divs)
+    // Use postIds as the anchor since they're unique per message
+    const items = [];
+    for (let i = 0; i < postIds.length; i++) {
+      const text = texts[i] || "";
+      if (!text) continue;
+      const pubDate = times[i] || new Date().toISOString();
+
+      items.push({
+        title: text.slice(0, 120),
+        link: `https://t.me/${postIds[i]}`,
+        pubDate,
+        description: text.slice(0, 500),
+        feedName: `TG: ${label}`,
+        feedCategory: "Telegram",
+      });
+    }
+
+    return items;
+  } catch (e) {
+    console.error(`[API] Telegram ${label}:`, e.message);
+    return [];
+  }
+}
+
+// Bot API fetcher — only works for channels where bot is admin
+async function fetchTelegramBotAPI(channelName) {
   if (!TELEGRAM_BOT) return [];
+  const meta = TELEGRAM_ACTIVE.find(ch => ch.handle === channelName);
+  const label = meta ? meta.label : channelName;
+  const category = meta ? meta.category : "Telegram";
   try {
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/getUpdates?allowed_updates=["channel_post"]&limit=25`);
     if (!res.ok) throw new Error(`Telegram: ${res.status}`);
@@ -589,13 +835,32 @@ async function fetchTelegramChannelHistory(channelName) {
         link: `https://t.me/${channelName}/${u.channel_post.message_id}`,
         pubDate: new Date(u.channel_post.date * 1000).toISOString(),
         description: (u.channel_post.text || "").slice(0, 300),
-        feedName: `TG: ${channelName}`,
+        feedName: `TG: ${label}`,
         feedCategory: "Telegram",
       }));
   } catch (e) {
-    console.error(`[API] Telegram ${channelName}:`, e.message);
+    console.error(`[API] Telegram ${label} (Bot API):`, e.message);
     return [];
   }
+}
+
+// Main Telegram fetcher — uses public scraper by default, Bot API as supplement
+async function fetchTelegramChannelHistory(channelName) {
+  // Always try public preview scraper (works for all public channels)
+  const publicPosts = await fetchTelegramPublicPreview(channelName);
+
+  // If Bot API is configured, merge any additional posts from owned channels
+  if (TELEGRAM_BOT) {
+    const botPosts = await fetchTelegramBotAPI(channelName);
+    if (botPosts.length > 0) {
+      const existingLinks = new Set(publicPosts.map(p => p.link));
+      for (const p of botPosts) {
+        if (!existingLinks.has(p.link)) publicPosts.push(p);
+      }
+    }
+  }
+
+  return publicPosts;
 }
 
 // ── Mastodon / Fediverse (no key, open API) ────────────────────
@@ -723,15 +988,22 @@ async function fetchSocialApiFeeds() {
     }
   }
 
-  // Telegram Bot API (optional)
-  if (TELEGRAM_BOT && TELEGRAM_CHANNELS_LIST.length > 0) {
-    for (const ch of TELEGRAM_CHANNELS_LIST) {
-      try {
-        const msgs = await fetchTelegramChannelHistory(ch);
-        items.push(...msgs);
-        stats[`TG: ${ch}`] = { count: msgs.length, status: "ok" };
-      } catch (e) {
-        stats[`TG: ${ch}`] = { count: 0, status: "error" };
+  // Telegram (always active — public preview scraper, no token needed)
+  if (TELEGRAM_ACTIVE.length > 0) {
+    const tgResults = await Promise.allSettled(
+      TELEGRAM_ACTIVE.map(ch => fetchTelegramChannelHistory(ch.handle))
+    );
+    for (let i = 0; i < tgResults.length; i++) {
+      const ch = TELEGRAM_ACTIVE[i];
+      const r = tgResults[i];
+      if (r.status === "fulfilled" && r.value.length > 0) {
+        items.push(...r.value);
+        stats[`TG: ${ch.label}`] = { count: r.value.length, status: "ok" };
+      } else if (r.status === "fulfilled") {
+        stats[`TG: ${ch.label}`] = { count: 0, status: "ok" };
+      } else {
+        console.error(`[API] Telegram ${ch.label}:`, r.reason?.message);
+        stats[`TG: ${ch.label}`] = { count: 0, status: "error" };
       }
     }
   }
@@ -1121,6 +1393,12 @@ function startServer(port) {
       // Initial fetch for ALL channels, then periodic refresh
       refreshAllChannels();
       setInterval(refreshAllChannels, REFRESH_INTERVAL);
+
+      // Telegram channel health check — every 6 hours
+      if (TELEGRAM_ACTIVE.length > 0) {
+        runTelegramHealthCheck(); // initial check on startup
+        setInterval(runTelegramHealthCheck, TG_HEALTH_INTERVAL);
+      }
 
       const totalFeeds = Object.values(CHANNELS).reduce((sum, ch) => sum + ch.feeds.length, 0);
       console.log(`[SERVER] Intel Hub running on ws://localhost:${port}`);

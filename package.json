@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,vite -c green,cyan \"npx pm2 start ecosystem.config.cjs\" \"vite\"",
+    "dev": "concurrently -n server,vite -c green,cyan \"node server.js\" \"vite\"",
     "start": "npx pm2 start ecosystem.config.cjs --env production",
     "stop": "npx pm2 stop intel-hub",
     "restart": "npx pm2 restart intel-hub",

@@ -1,12 +1,13 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 6 channels, 150+ feeds, severity classification, source credibility scoring, political bias tagging, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 6 channels, 160+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring, and email alerting.
 
 ## Features
 
 - **6-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, and Social Media
-- **150+ RSS feeds** aggregated in real-time via server-side parsing
-- **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST)
+- **160+ feeds** aggregated in real-time via server-side parsing
+- **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST), Telegram
+- **Telegram monitoring** — 12 channels scraped via public preview with health checks, auto-rotation of dead channels, and backup pool
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
 - **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
 - **Real-time updates** — WebSocket push from Node.js backend to React frontend
@@ -93,16 +94,16 @@ Open `http://localhost:3000`
 | Government | UK NCSC Reports |
 | API Feeds | Have I Been Pwned domain search, URLhaus, MalwareBazaar, Feodo Tracker, SSL Blacklist |
 
-### Social Media (16+ feeds)
+### Social Media (28+ feeds)
 
 | Category | Sources | Key Required? |
 |----------|---------|---------------|
 | Reddit (10 subreddits) | r/netsec, r/cybersecurity, r/malware, r/darknet, r/privacy, r/ReverseEngineering, r/AskNetsec, r/blueteamsec, r/computerforensics, r/OSINT | No |
+| Telegram (12 channels) | vx-underground, HackGit, DARKFEED, Daily Dark Web, RansomFeed News, RansomLook, Intel Slava, OsintTV, The Hacker News, SecAtor, Bug Bounty Hunter, Bug Bounty Channel — via public preview scraper with auto-rotation | No |
 | Mastodon (4 accounts) | Jerry Bell, Brian Krebs, BleepingComputer, MalwareTech — via infosec.exchange | No |
 | GitHub Advisories | Reviewed CVEs with severity and CVSS scores | No |
 | NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
 | X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
-| Telegram | Bot API channel monitoring (vx-underground, etc.) | Yes (free via @BotFather) |
 
 ## API Integrations
 
@@ -118,7 +119,8 @@ These feeds use dedicated API calls (not RSS):
 | GitHub Advisories | Reviewed security advisories with CVSS | None (always active) |
 | NVD (NIST) | High-severity CVEs, last 3 days | None (rate-limited) |
 | Twitter API v2 | Keyword search across X/Twitter | Bearer token ($100/mo) |
-| Telegram Bot API | Channel message history | Bot token (free) |
+| Telegram Public Scraper | 12 channels with health checks and auto-rotation | None (always active) |
+| Telegram Bot API | Private channel monitoring (supplement) | Bot token (free, optional) |
 
 ## Environment Variables
 

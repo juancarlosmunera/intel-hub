@@ -21,7 +21,7 @@ const CHANNELS = [
   { id: "chatfeeds", label: "Chat Feeds", icon: "💬", color: "#00d4aa", path: "/chatfeeds", keywords: CHAT_KW },
 ];
 
-function ChannelSummary({ channel }) {
+function ChannelSummary({ channel, searchFilter = "" }) {
   const { articles: raw, stats, connected } = useWebSocket(channel.id);
   const navigate = useNavigate();
 
@@ -42,10 +42,22 @@ function ChannelSummary({ channel }) {
     [raw, channel.keywords]
   );
 
-  const breachCount = articles.filter(a => a.severity.level === "BREACH").length;
-  const criticalCount = articles.filter(a => a.severity.level === "CRITICAL").length;
-  const highCount = articles.filter(a => a.severity.level === "HIGH").length;
+  const filtered = useMemo(() => {
+    if (!searchFilter) return articles;
+    return articles.filter(a => {
+      const text = `${a.title} ${a.cleanDescription} ${a.feedName || ""} ${a.severity.level}`.toLowerCase();
+      return text.includes(searchFilter);
+    });
+  }, [articles, searchFilter]);
+
+  const display = searchFilter ? filtered : articles;
+  const breachCount = display.filter(a => a.severity.level === "BREACH").length;
+  const criticalCount = display.filter(a => a.severity.level === "CRITICAL").length;
+  const highCount = display.filter(a => a.severity.level === "HIGH").length;
   const activeFeedCount = Object.values(stats).filter(s => s.status === "ok").length;
+
+  // Hide channel entirely if search is active and no matches
+  if (searchFilter && display.length === 0) return null;
 
   return (
     <div style={{
@@ -75,7 +87,7 @@ function ChannelSummary({ channel }) {
               {channel.label}
             </div>
             <div style={{ fontSize: 10, color: "#3a4a5e" }}>
-              {activeFeedCount} feeds active · {articles.length} items
+              {activeFeedCount} feeds active · {display.length}{searchFilter ? ` match${display.length !== 1 ? "es" : ""}` : " items"}
             </div>
           </div>
         </div>
@@ -99,7 +111,7 @@ function ChannelSummary({ channel }) {
       </div>
 
       {/* Top 5 articles */}
-      {articles.slice(0, 5).map((article, i) => (
+      {display.slice(0, 5).map((article, i) => (
         <div
           key={`${article.title}-${i}`}
           style={{
@@ -168,6 +180,10 @@ function ChannelSummary({ channel }) {
 }
 
 export default function Overview() {
+  const [search, setSearch] = useState("");
+
+  const searchLower = search.toLowerCase().trim();
+
   return (
     <>
       <header style={{
@@ -176,20 +192,63 @@ export default function Overview() {
         background: "linear-gradient(180deg, #0c1220 0%, #0a0e17 100%)",
         position: "sticky", top: 0, zIndex: 50,
       }}>
-        <h1 style={{
-          fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 18, fontWeight: 700, color: "#e8edf2", letterSpacing: -0.5,
-        }}>
-          INTEL HUB — OVERVIEW
-        </h1>
-        <div style={{ fontSize: 10, color: "#3a4a5e", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>
-          All Channels · Top Alerts · Real-Time
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+          <div>
+            <h1 style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 18, fontWeight: 700, color: "#e8edf2", letterSpacing: -0.5,
+            }}>
+              INTEL HUB — OVERVIEW
+            </h1>
+            <div style={{ fontSize: 10, color: "#3a4a5e", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>
+              All Channels · Top Alerts · Real-Time
+            </div>
+          </div>
+          <div style={{ position: "relative", flex: "0 1 400px" }}>
+            <input
+              type="text"
+              placeholder="Search across all channels..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 14px 10px 36px",
+                background: "#0d1422",
+                border: "1px solid #1a2436",
+                borderRadius: 8,
+                color: "#e8edf2",
+                fontSize: 13,
+                fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={e => e.target.style.borderColor = "#00ff88"}
+              onBlur={e => e.target.style.borderColor = "#1a2436"}
+            />
+            <span style={{
+              position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
+              fontSize: 14, color: "#3a4a5e", pointerEvents: "none",
+            }}>
+              🔎
+            </span>
+            {search && (
+              <span
+                style={{
+                  position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                  fontSize: 14, color: "#3a4a5e", cursor: "pointer",
+                }}
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
       <div style={{ padding: "20px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
         {CHANNELS.map(ch => (
-          <ChannelSummary key={ch.id} channel={ch} />
+          <ChannelSummary key={ch.id} channel={ch} searchFilter={searchLower} />
         ))}
       </div>
     </>

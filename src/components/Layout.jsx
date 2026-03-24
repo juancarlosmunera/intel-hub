@@ -4,7 +4,6 @@ const NAV_ITEMS = [
   { to: "/", icon: "⬡", label: "Overview" },
   { to: "/cyber", icon: "🛡", label: "Cybersecurity" },
   { to: "/world", icon: "🌐", label: "World News" },
-  { to: "/geopolitics", icon: "⚔", label: "Geopolitics" },
   { to: "/osint", icon: "🔍", label: "OSINT" },
   { to: "/darkweb", icon: "👁", label: "Dark Web" },
   { to: "/social", icon: "📡", label: "Social Media" },

@@ -11,8 +11,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const DATA_DIR = path.join(__dirname, "data");
-const MAX_ARTICLES = 5000;
-const RETENTION_DAYS = 90;
+const MAX_ARTICLES = 5000; // per-channel soft cap (hard cap is memory-based)
+const RETENTION_DAYS = 90; // fallback time-based retention
+
+// ── Memory-Based Eviction ────────────────────────────────────────
+// Drops oldest articles when process memory exceeds the cap.
+// Checked after every refresh cycle.
+const MEMORY_CAP_MB = parseInt(process.env.MEMORY_CAP_MB || "4096", 10); // default 4 GB
+const MEMORY_EVICT_TARGET = 0.85; // evict down to 85% of cap
+const MEMORY_CHECK_INTERVAL = 60 * 1000; // check every 60s between refreshes
 
 const parser = new Parser({
   timeout: 15000,
@@ -1332,7 +1339,66 @@ async function refreshAllChannels() {
   await Promise.allSettled(
     Object.keys(CHANNELS).map(id => refreshChannel(id))
   );
+  // Check memory after every refresh cycle
+  checkMemoryAndEvict();
 }
+
+// ── Memory Monitor & Eviction ──────────────────────────────────
+function getMemoryUsageMB() {
+  return process.memoryUsage().rss / (1024 * 1024);
+}
+
+function checkMemoryAndEvict() {
+  const usedMB = getMemoryUsageMB();
+  if (usedMB < MEMORY_CAP_MB) return;
+
+  const targetMB = MEMORY_CAP_MB * MEMORY_EVICT_TARGET;
+  console.log(`[MEMORY] ${usedMB.toFixed(0)} MB used (cap: ${MEMORY_CAP_MB} MB) — evicting oldest articles...`);
+
+  // Gather all channels with their article counts
+  const channelIds = Object.keys(CHANNELS);
+  let totalBefore = 0;
+  for (const id of channelIds) {
+    totalBefore += (channelCache[id]?.articles?.length || 0);
+  }
+
+  // Iteratively drop oldest 20% from each channel until under target
+  let rounds = 0;
+  while (getMemoryUsageMB() > targetMB && rounds < 10) {
+    rounds++;
+    for (const id of channelIds) {
+      const cache = channelCache[id];
+      if (!cache?.articles || cache.articles.length <= 50) continue; // keep minimum 50
+
+      // Drop oldest 20%
+      const dropCount = Math.max(1, Math.floor(cache.articles.length * 0.2));
+      cache.articles = cache.articles.slice(0, cache.articles.length - dropCount);
+
+      // Persist trimmed data to disk
+      const channel = CHANNELS[id];
+      saveArticleDb(channel.dbFile, { articles: cache.articles });
+    }
+
+    // Force garbage collection if available (run node with --expose-gc)
+    if (global.gc) global.gc();
+  }
+
+  let totalAfter = 0;
+  for (const id of channelIds) {
+    totalAfter += (channelCache[id]?.articles?.length || 0);
+  }
+
+  const afterMB = getMemoryUsageMB();
+  console.log(`[MEMORY] Evicted ${totalBefore - totalAfter} articles in ${rounds} round(s) — ${afterMB.toFixed(0)} MB used, ${totalAfter} articles remaining`);
+}
+
+// Periodic memory check between refresh cycles
+setInterval(() => {
+  const usedMB = getMemoryUsageMB();
+  if (usedMB >= MEMORY_CAP_MB) {
+    checkMemoryAndEvict();
+  }
+}, MEMORY_CHECK_INTERVAL);
 
 // Pre-load persisted data into channelCache so clients get data immediately on connect
 for (const [id, channel] of Object.entries(CHANNELS)) {
@@ -1401,8 +1467,10 @@ function startServer(port) {
       }
 
       const totalFeeds = Object.values(CHANNELS).reduce((sum, ch) => sum + ch.feeds.length, 0);
+      const totalArticles = Object.values(channelCache).reduce((sum, c) => sum + (c?.articles?.length || 0), 0);
       console.log(`[SERVER] Intel Hub running on ws://localhost:${port}`);
       console.log(`[SERVER] ${Object.keys(CHANNELS).length} channels, ${totalFeeds} total feeds, refresh every ${REFRESH_INTERVAL / 60000}m`);
+      console.log(`[MEMORY] ${getMemoryUsageMB().toFixed(0)} MB used | cap: ${MEMORY_CAP_MB} MB | ${totalArticles} articles cached`);
     });
   });
 }

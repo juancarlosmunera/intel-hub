@@ -237,6 +237,10 @@ React (Vite) ←—WebSocket—→ Node.js Server
                               └── SMTP Alerter (nodemailer)
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved — from adding a single RSS feed to building new integrations.
+
 ## License
 
-Private — all rights reserved.
+MIT — see [LICENSE](LICENSE) for details.

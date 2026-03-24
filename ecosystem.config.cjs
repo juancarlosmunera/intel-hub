@@ -3,10 +3,11 @@ module.exports = {
     {
       name: "intel-hub",
       script: "server.js",
+      node_args: "--expose-gc --max-old-space-size=4096",
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "500M",
+      max_memory_restart: "4500M", // PM2 safety net above the app's 4GB soft cap
       env: {
         NODE_ENV: "development",
       },

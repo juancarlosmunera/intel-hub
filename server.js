@@ -1360,43 +1360,106 @@ async function refreshAllChannels() {
   checkMemoryAndEvict();
 }
 
-// ── Memory Monitor & Eviction ──────────────────────────────────
+// ── Memory Monitor, Compaction & Eviction ──────────────────────
 function getMemoryUsageMB() {
   return process.memoryUsage().rss / (1024 * 1024);
 }
 
+// Tiered compaction — trim article data based on age
+// Tier 1: 0-30 min  → full fidelity
+// Tier 2: 30 min-6h → description trimmed to 100 chars
+// Tier 3: 6h+       → description trimmed to 50 chars, extra fields stripped
+const COMPACT_TIER2_MS = 30 * 60 * 1000;       // 30 minutes
+const COMPACT_TIER3_MS = 6 * 60 * 60 * 1000;   // 6 hours
+
+function compactArticles(articles) {
+  const now = Date.now();
+  let tier2 = 0;
+  let tier3 = 0;
+
+  for (const a of articles) {
+    const age = now - new Date(a.pubDate).getTime();
+
+    if (age > COMPACT_TIER3_MS) {
+      // Tier 3: aggressive trim
+      if (a.description && a.description.length > 50) {
+        a.description = a.description.slice(0, 50) + "...";
+        tier3++;
+      }
+      // Strip non-essential fields that may have been attached
+      delete a.matchedKeywords;
+      delete a.redFlags;
+      delete a.fullText;
+    } else if (age > COMPACT_TIER2_MS) {
+      // Tier 2: moderate trim
+      if (a.description && a.description.length > 100) {
+        a.description = a.description.slice(0, 100) + "...";
+        tier2++;
+      }
+    }
+    // Tier 1: no changes
+  }
+
+  return { tier2, tier3 };
+}
+
+function runCompaction() {
+  const channelIds = Object.keys(CHANNELS);
+  let totalTier2 = 0;
+  let totalTier3 = 0;
+
+  for (const id of channelIds) {
+    const cache = channelCache[id];
+    if (!cache?.articles || cache.articles.length === 0) continue;
+
+    const { tier2, tier3 } = compactArticles(cache.articles);
+    totalTier2 += tier2;
+    totalTier3 += tier3;
+
+    // Persist compacted data
+    if (tier2 + tier3 > 0) {
+      saveArticleDb(CHANNELS[id].dbFile, { articles: cache.articles });
+    }
+  }
+
+  if (totalTier2 + totalTier3 > 0) {
+    console.log(`[COMPACT] Trimmed ${totalTier2} articles to 100ch, ${totalTier3} articles to 50ch`);
+  }
+}
+
 function checkMemoryAndEvict() {
   const usedMB = getMemoryUsageMB();
+
+  // Step 1: Try compaction first (cheaper than eviction)
+  if (usedMB >= MEMORY_CAP_MB * 0.75) {
+    runCompaction();
+    if (global.gc) global.gc();
+    if (getMemoryUsageMB() < MEMORY_CAP_MB) return;
+  }
+
   if (usedMB < MEMORY_CAP_MB) return;
 
+  // Step 2: Evict oldest articles if compaction wasn't enough
   const targetMB = MEMORY_CAP_MB * MEMORY_EVICT_TARGET;
   console.log(`[MEMORY] ${usedMB.toFixed(0)} MB used (cap: ${MEMORY_CAP_MB} MB) — evicting oldest articles...`);
 
-  // Gather all channels with their article counts
   const channelIds = Object.keys(CHANNELS);
   let totalBefore = 0;
   for (const id of channelIds) {
     totalBefore += (channelCache[id]?.articles?.length || 0);
   }
 
-  // Iteratively drop oldest 20% from each channel until under target
   let rounds = 0;
   while (getMemoryUsageMB() > targetMB && rounds < 10) {
     rounds++;
     for (const id of channelIds) {
       const cache = channelCache[id];
-      if (!cache?.articles || cache.articles.length <= 50) continue; // keep minimum 50
+      if (!cache?.articles || cache.articles.length <= 50) continue;
 
-      // Drop oldest 20%
       const dropCount = Math.max(1, Math.floor(cache.articles.length * 0.2));
       cache.articles = cache.articles.slice(0, cache.articles.length - dropCount);
-
-      // Persist trimmed data to disk
-      const channel = CHANNELS[id];
-      saveArticleDb(channel.dbFile, { articles: cache.articles });
+      saveArticleDb(CHANNELS[id].dbFile, { articles: cache.articles });
     }
-
-    // Force garbage collection if available (run node with --expose-gc)
     if (global.gc) global.gc();
   }
 
@@ -1409,11 +1472,14 @@ function checkMemoryAndEvict() {
   console.log(`[MEMORY] Evicted ${totalBefore - totalAfter} articles in ${rounds} round(s) — ${afterMB.toFixed(0)} MB used, ${totalAfter} articles remaining`);
 }
 
-// Periodic memory check between refresh cycles
+// Periodic memory check + compaction between refresh cycles
 setInterval(() => {
   const usedMB = getMemoryUsageMB();
   if (usedMB >= MEMORY_CAP_MB) {
     checkMemoryAndEvict();
+  } else if (usedMB >= MEMORY_CAP_MB * 0.5) {
+    // Run compaction proactively at 50% memory to prevent spikes
+    runCompaction();
   }
 }, MEMORY_CHECK_INTERVAL);
 

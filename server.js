@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer } from "net";
+import { createServer } from "http";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
@@ -718,7 +718,7 @@ async function runTelegramHealthCheck() {
         consecutiveFails: 0,
       };
       if (prev.status === "dead") {
-        console.log(`[TG-HEALTH] ✓ ${ch.label} (@${ch.handle}) — RECOVERED`);
+        console.log(`[TG-HEALTH] [OK] ${ch.label} (@${ch.handle}) — RECOVERED`);
         changes = true;
       }
     } else {
@@ -732,10 +732,10 @@ async function runTelegramHealthCheck() {
         deadSince: fails >= TG_CONSECUTIVE_FAILS_BEFORE_DEAD ? (prev.deadSince || now) : undefined,
       };
       if (fails >= TG_CONSECUTIVE_FAILS_BEFORE_DEAD && prev.status !== "dead") {
-        console.log(`[TG-HEALTH] ✗ ${ch.label} (@${ch.handle}) — MARKED DEAD (${result.reason})`);
+        console.log(`[TG-HEALTH] [DEAD] ${ch.label} (@${ch.handle}) — MARKED DEAD (${result.reason})`);
         changes = true;
       } else if (fails < TG_CONSECUTIVE_FAILS_BEFORE_DEAD) {
-        console.log(`[TG-HEALTH] ⚠ ${ch.label} (@${ch.handle}) — failing (${fails}/${TG_CONSECUTIVE_FAILS_BEFORE_DEAD}, ${result.reason})`);
+        console.log(`[TG-HEALTH] [WARN] ${ch.label} (@${ch.handle}) — failing (${fails}/${TG_CONSECUTIVE_FAILS_BEFORE_DEAD}, ${result.reason})`);
       }
     }
 

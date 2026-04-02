@@ -12,13 +12,13 @@ import { ALERT_KEYWORDS as CHAT_KW } from "../constants/chatFeeds";
 import Pulse from "../components/Pulse";
 
 const CHANNELS = [
-  { id: "cyber", label: "Cybersecurity", icon: "🛡", color: "#00ff88", path: "/cyber", keywords: CYBER_KW },
-  { id: "world", label: "World News", icon: "🌐", color: "#64d2ff", path: "/world", keywords: WORLD_KW },
-  { id: "geopolitics", label: "Geopolitics", icon: "⚔", color: "#ff6b35", path: "/geopolitics", keywords: [...WORLD_KW, "Iran", "CENTCOM", "airstrike", "missile", "NATO", "escalation", "ceasefire", "nuclear", "sanctions"] },
-  { id: "osint", label: "OSINT", icon: "🔍", color: "#ff9500", path: "/osint", keywords: OSINT_KW },
-  { id: "darkweb", label: "Dark Web", icon: "👁", color: "#ff2255", path: "/darkweb", keywords: DARKWEB_KW },
-  { id: "social", label: "Social Media", icon: "📡", color: "#7c4dff", path: "/social", keywords: SOCIAL_KW },
-  { id: "chatfeeds", label: "Chat Feeds", icon: "💬", color: "#00d4aa", path: "/chatfeeds", keywords: CHAT_KW },
+  { id: "cyber", label: "Cybersecurity", icon: "CS", color: "#00ff88", path: "/cyber", keywords: CYBER_KW },
+  { id: "world", label: "World News", icon: "WN", color: "#64d2ff", path: "/world", keywords: WORLD_KW },
+  { id: "geopolitics", label: "Geopolitics", icon: "GP", color: "#ff6b35", path: "/geopolitics", keywords: [...WORLD_KW, "Iran", "CENTCOM", "airstrike", "missile", "NATO", "escalation", "ceasefire", "nuclear", "sanctions"] },
+  { id: "osint", label: "OSINT", icon: "OS", color: "#ff9500", path: "/osint", keywords: OSINT_KW },
+  { id: "darkweb", label: "Dark Web", icon: "DW", color: "#ff2255", path: "/darkweb", keywords: DARKWEB_KW },
+  { id: "social", label: "Social Media", icon: "SM", color: "#7c4dff", path: "/social", keywords: SOCIAL_KW },
+  { id: "chatfeeds", label: "Chat Feeds", icon: "CF", color: "#00d4aa", path: "/chatfeeds", keywords: CHAT_KW },
 ];
 
 function ChannelSummary({ channel, searchFilter = "" }) {
@@ -78,7 +78,14 @@ function ChannelSummary({ channel, searchFilter = "" }) {
         onClick={() => navigate(channel.path)}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 20 }}>{channel.icon}</span>
+          <span style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+            width: 28, height: 28, borderRadius: 6,
+            background: `${channel.color}15`, color: channel.color,
+            border: `1px solid ${channel.color}30`,
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "'Space Grotesk', monospace",
+          }}>{channel.icon}</span>
           <div>
             <div style={{
               fontFamily: "'Space Grotesk', sans-serif",
@@ -229,7 +236,7 @@ export default function Overview() {
               position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
               fontSize: 14, color: "#3a4a5e", pointerEvents: "none",
             }}>
-              🔎
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a4a5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
             </span>
             {search && (
               <span

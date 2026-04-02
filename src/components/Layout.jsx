@@ -1,13 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { to: "/", icon: "⬡", label: "Overview" },
-  { to: "/cyber", icon: "🛡", label: "Cybersecurity" },
-  { to: "/world", icon: "🌐", label: "World News" },
-  { to: "/osint", icon: "🔍", label: "OSINT" },
-  { to: "/darkweb", icon: "👁", label: "Dark Web" },
-  { to: "/social", icon: "📡", label: "Social Media" },
-  { to: "/chatfeeds", icon: "💬", label: "Chat Feeds" },
+  { to: "/", icon: "OV", label: "Overview" },
+  { to: "/cyber", icon: "CS", label: "Cybersecurity" },
+  { to: "/world", icon: "WN", label: "World News" },
+  { to: "/osint", icon: "OS", label: "OSINT" },
+  { to: "/darkweb", icon: "DW", label: "Dark Web" },
+  { to: "/social", icon: "SM", label: "Social Media" },
+  { to: "/chatfeeds", icon: "CF", label: "Chat Feeds" },
 ];
 
 export default function Layout() {
@@ -22,7 +22,7 @@ export default function Layout() {
               background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 16, fontWeight: 700, color: "#0a0e17",
-            }}>⬡</div>
+            }}>IH</div>
             <div>
               <div style={{
                 fontFamily: "'Space Grotesk', sans-serif",

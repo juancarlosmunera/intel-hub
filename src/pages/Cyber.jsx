@@ -18,7 +18,7 @@ function sendUrgentNotification(article) {
   const level = article.severity.level;
   const notif = new Notification(`${level}: CyberSec Alert`, {
     body: article.title,
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>",
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L85 30 V55 C85 75 50 90 50 90 C50 90 15 75 15 55 V30 Z' fill='%2300ff88' opacity='0.9'/></svg>",
     tag: `${level}-${article.title.slice(0, 40)}`,
     requireInteraction: true,
   });
@@ -181,7 +181,7 @@ export default function Cyber() {
         {/* CONTROLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "0 1 320px" }}>
-            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#3a4a5e", fontSize: 14 }}>⌕</span>
+            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a4a5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
             <input
               className="search-input"
               placeholder="Search articles..."
@@ -262,7 +262,7 @@ export default function Cyber() {
 
         {loading && articles.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "#2a3a4e" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⬡</div>
+            <div style={{ fontSize: 14, marginBottom: 12, letterSpacing: 2, color: "#3a4a5e" }}>///</div>
             <div style={{ fontSize: 12, letterSpacing: 1 }}>SCANNING FEEDS...</div>
           </div>
         ) : (

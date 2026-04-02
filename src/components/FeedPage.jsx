@@ -124,7 +124,7 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
         {/* CONTROLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "0 1 320px" }}>
-            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#3a4a5e", fontSize: 14 }}>⌕</span>
+            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a4a5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
             <input
               className="search-input"
               placeholder="Search articles..."
@@ -205,7 +205,7 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
 
         {loading && articles.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "#2a3a4e" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⬡</div>
+            <div style={{ fontSize: 14, marginBottom: 12, letterSpacing: 2, color: "#3a4a5e" }}>///</div>
             <div style={{ fontSize: 12, letterSpacing: 1 }}>SCANNING FEEDS...</div>
           </div>
         ) : (

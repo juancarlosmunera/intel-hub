@@ -2,8 +2,18 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 const WS_PORTS = [3001, 3002, 3003, 3004, 3005];
 
+// Production: app served by Node server → WebSocket on same origin
+// Development: Vite serves on 3000, backend on 3001 → port discovery
+const DEV_PORTS = ["3000", "5173", ""];
+const isDev = typeof window !== "undefined" && DEV_PORTS.includes(window.location.port);
+
 // Shared working port — once discovered, all hooks use it instantly
 let workingPort = null;
+
+function getSameOriginWsUrl() {
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}`;
+}
 
 function tryConnect(ports) {
   return new Promise((resolve) => {
@@ -40,7 +50,15 @@ export default function useWebSocket(channel = "cyber") {
     if (wsRef.current && wsRef.current.readyState <= 1) return;
 
     let ws;
-    if (workingPort) {
+    if (!isDev) {
+      // Production: WebSocket on same origin as the served frontend
+      ws = new WebSocket(getSameOriginWsUrl());
+      await new Promise((resolve) => {
+        ws.onopen = resolve;
+        ws.onerror = () => { ws.close(); resolve(); };
+      });
+      if (ws.readyState !== 1) ws = null;
+    } else if (workingPort) {
       ws = new WebSocket(`ws://localhost:${workingPort}`);
       await new Promise((resolve) => {
         ws.onopen = resolve;

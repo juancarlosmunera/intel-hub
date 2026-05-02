@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,vite -c green,cyan \"node server.js\" \"vite\"",
-    "start": "npx pm2 start ecosystem.config.cjs --env production",
+    "dev": "concurrently -n server,vite -c green,cyan \"node server.js\" \"vite --open\"",
+    "start": "npm run build && npx pm2 start ecosystem.config.cjs --env production && node scripts/open-browser.js",
     "stop": "npx pm2 stop intel-hub",
-    "restart": "npx pm2 restart intel-hub",
+    "restart": "npx pm2 restart intel-hub && node scripts/open-browser.js",
     "logs": "npx pm2 logs intel-hub",
     "status": "npx pm2 status",
     "server": "node server.js",

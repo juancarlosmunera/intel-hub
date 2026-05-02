@@ -1,21 +1,24 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, OSINT, dark web, and social media intelligence aggregator with 6 channels, 160+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat feed intelligence aggregator with 7 channels, 170+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring, universal webhook ingest, and email alerting.
 
 ## Features
 
-- **6-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, and Social Media
-- **160+ feeds** aggregated in real-time via server-side parsing
+- **7-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, Social Media, and Chat Feeds
+- **170+ feeds** aggregated in real-time via server-side parsing
 - **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST), Telegram
 - **Telegram monitoring** — 12 channels scraped via public preview with health checks, auto-rotation of dead channels, and backup pool
+- **Universal ingest API** — `POST /api/ingest` accepts messages from any source (Tasker, iOS Shortcuts, Discord bots, signal-cli, etc.)
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
 - **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
 - **Real-time updates** — WebSocket push from Node.js backend to React frontend
 - **Email alerts** — configurable SMTP notifications for high-severity items
-- **Persistent cache** — articles stored to disk with deduplication and 48-hour retention
+- **Persistent cache** — articles stored to disk with deduplication and 90-day retention
+- **Memory management** — 4 GB soft cap with tiered article compaction and oldest-first eviction; PM2 hard restart at 4.5 GB
 - **Source credibility scoring** — 4-tier trust system (Primary → Verified → Industry → Unvetted)
 - **Political bias tagging** — every news source labeled Left / Lean Left / Center / Lean Right / Right / Independent
 - **Content red flags** — automatic detection of clickbait, misinfo, and disinfo patterns
+- **Single-process production** — Node server bundles the React frontend; one port, one process, auto-launches browser
 - **Zero-key startup** — works immediately with no API keys; optional keys unlock premium sources
 
 ## Quick Start
@@ -25,26 +28,38 @@ Requires **Node.js 18+**.
 ```bash
 cp .env.example .env    # configure API keys and email (optional)
 npm install
-npm run dev             # starts server + Vite dev server
 ```
 
-Open `http://localhost:3000`
+### Production (single process, auto-opens browser)
+
+```bash
+npm start               # builds frontend, starts PM2, opens browser to http://localhost:3001
+npm run logs            # tail the running server logs
+npm run status          # PM2 process status
+npm run stop            # stop the server
+```
+
+### Development (hot reload)
+
+```bash
+npm run dev             # backend on 3001, Vite on 3000 (auto-opens browser)
+```
 
 ## Channels & Sources
 
-### Cybersecurity (40+ feeds)
+### Cybersecurity (45+ feeds)
 
 | Category | Sources |
 |----------|---------|
-| Threat Intel | The Hacker News, Krebs on Security, BleepingComputer, Dark Reading, SecurityWeek, Threatpost, Ars Technica Security, The Record, Infosecurity Magazine, CSO Online, SecurityAffairs, GBHackers, Hackread, Cyber Security News, Graham Cluley, Schneier on Security |
+| News & Journalism | The Hacker News, BleepingComputer, Dark Reading, SecurityWeek, Threatpost, Ars Technica Security, The Record, Infosecurity Magazine, CSO Online, SecurityAffairs, GBHackers, Hackread, Cyber Security News, TechCrunch Security, The Tech Buzz |
+| Expert Commentary | Krebs on Security, Schneier on Security, Graham Cluley |
+| Threat Research | Google Project Zero, Unit 42 (Palo Alto), Cisco Talos, CrowdStrike, SentinelOne, Microsoft Security Blog, WeLiveSecurity (ESET), Qualys, Recorded Future, Datadog Security Labs, Sekoia, ReversingLabs |
 | Advisories | CISA Advisories, NIST Cyber Insights, US-CERT Alerts |
 | Vulnerability | Exploit-DB |
-| Research | Google Project Zero, Unit 42 (Palo Alto), Cisco Talos, Qualys, Recorded Future, Datadog Security Labs, Sekoia, ReversingLabs |
-| Vendor Security | Microsoft Security Blog, SentinelOne, CrowdStrike, WeLiveSecurity (ESET) |
 | Supply Chain | Snyk, Sonatype, GitHub Security Blog, OpenSSF, Feroot Security, c/side |
 | Web Security | Wordfence, Sucuri |
 | PCI / Compliance | PCI SSC Blog, Finextra Security, Payments Dive |
-| API Feeds | ThreatFox IoCs (abuse.ch), GreyNoise Trending, VulnCheck KEV |
+| API Feeds (live IoC/threat data) | ThreatFox IoCs (abuse.ch), GreyNoise Trending, VulnCheck KEV |
 
 ### World News (40+ feeds)
 
@@ -94,16 +109,25 @@ Open `http://localhost:3000`
 | Government | UK NCSC Reports |
 | API Feeds | Have I Been Pwned domain search, URLhaus, MalwareBazaar, Feodo Tracker, SSL Blacklist |
 
-### Social Media (28+ feeds)
+### Social Media (16+ feeds)
 
 | Category | Sources | Key Required? |
 |----------|---------|---------------|
 | Reddit (10 subreddits) | r/netsec, r/cybersecurity, r/malware, r/darknet, r/privacy, r/ReverseEngineering, r/AskNetsec, r/blueteamsec, r/computerforensics, r/OSINT | No |
-| Telegram (12 channels) | vx-underground, HackGit, DARKFEED, Daily Dark Web, RansomFeed News, RansomLook, Intel Slava, OsintTV, The Hacker News, SecAtor, Bug Bounty Hunter, Bug Bounty Channel — via public preview scraper with auto-rotation | No |
 | Mastodon (4 accounts) | Jerry Bell, Brian Krebs, BleepingComputer, MalwareTech — via infosec.exchange | No |
 | GitHub Advisories | Reviewed CVEs with severity and CVSS scores | No |
 | NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
 | X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
+
+### Chat Feeds (12+ channels)
+
+Dedicated channel for chat-platform intelligence — separated from Social Media so it can be monitored, filtered, and alerted on independently.
+
+| Source | Channels | Key Required? |
+|--------|----------|---------------|
+| Telegram (public preview scraper) | vx-underground, HackGit, DARKFEED, Daily Dark Web, RansomFeed News, RansomLook, Intel Slava, OsintTV, The Hacker News, SecAtor, Bug Bounty Hunter, Bug Bounty Channel — with health checks, dead-channel detection, and auto-rotation from a backup pool | No |
+| Telegram Bot API (optional) | Private channel monitoring (supplement to scraper) | Bot token (free) |
+| Universal Ingest API | Any messaging platform (Signal, WhatsApp, Discord, etc.) via `POST /api/ingest` webhook | Optional API key |
 
 ## API Integrations
 
@@ -122,6 +146,30 @@ These feeds use dedicated API calls (not RSS):
 | Telegram Public Scraper | 12 channels with health checks and auto-rotation | None (always active) |
 | Telegram Bot API | Private channel monitoring (supplement) | Bot token (free, optional) |
 
+## Universal Ingest API
+
+`POST /api/ingest` accepts messages from any source — Tasker on Android, iOS Shortcuts, Discord/Signal/WhatsApp bots, signal-cli, Python scripts, anything that can make an HTTP request. Posted items are deduplicated, persisted, and broadcast to subscribers via WebSocket like any other feed.
+
+```bash
+curl -X POST http://localhost:3001/api/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $INGEST_API_KEY" \
+  -d '{
+    "channel": "chatfeeds",
+    "feedName": "Signal: ThreatGroup",
+    "title": "Possible IoC drop in #leaks channel",
+    "description": "...",
+    "link": "https://signal.group/...",
+    "pubDate": "2026-05-02T10:30:00Z"
+  }'
+```
+
+See [docs/ingest-api.md](docs/ingest-api.md) for full payload schema and platform-specific examples.
+
+Other API endpoints:
+- `GET /api/health` — server status, uptime, memory usage
+- `GET /api/channels` — channel definitions and feed counts
+
 ## Environment Variables
 
 Copy `.env.example` to `.env` and configure as needed. All keys are optional — the app works with zero configuration.
@@ -134,6 +182,12 @@ TWITTER_BEARER_TOKEN=       # Twitter API v2 Basic ($100/mo)
 TELEGRAM_BOT_TOKEN=         # Free via @BotFather on Telegram
 TELEGRAM_CHANNELS=vxunderground  # Comma-separated channel usernames
 
+# ── Universal Ingest API (optional) ──
+INGEST_API_KEY=             # Shared secret required on POST /api/ingest
+
+# ── Memory Management (optional) ──
+MEMORY_CAP_MB=4096          # Soft cap before eviction kicks in (default 4 GB)
+
 # ── Email Alerts (optional) ──
 EMAIL_ENABLED=true
 SMTP_HOST=smtp.gmail.com
@@ -143,6 +197,28 @@ SMTP_PASS=your-app-password
 EMAIL_TO=alerts@yourcompany.com
 EMAIL_MIN_SEVERITY=BREACH
 ```
+
+## Memory Management
+
+Designed for long-running production deployments without manual intervention:
+
+| Threshold | Action |
+|-----------|--------|
+| < 50% of cap | Normal operation |
+| ≥ 50% of cap | Proactive tiered compaction runs every 60s |
+| ≥ 75% of cap | Compaction runs as the first step of any check |
+| ≥ 100% of cap | Eviction — drop oldest 20% per channel until back under 85% |
+| > 4500 MB RSS | PM2 hard-restarts the process (safety net) |
+
+**Tiered compaction** trims article descriptions based on age before evicting:
+
+| Tier | Age | Description trimmed to |
+|------|-----|------------------------|
+| 1 | < 30 min | Full fidelity |
+| 2 | 30 min – 6 h | 100 chars |
+| 3 | > 6 h | 50 chars + non-essential fields stripped |
+
+Adjust the cap with `MEMORY_CAP_MB` in `.env`.
 
 ## Source Credibility System
 
@@ -220,21 +296,35 @@ Then add the feed name to `src/constants/socialFeeds.js` and trust tier to `src/
 
 ## Architecture
 
+In production a single Node.js process serves the React bundle, the REST API, and the WebSocket on the same port. PM2 supervises the process, restarts on crash, and enforces a memory ceiling.
+
 ```
-React (Vite) ←—WebSocket—→ Node.js Server
-                              ├── RSS Parser (rss-parser)
-                              ├── API Fetchers
-                              │   ├── ThreatFox, GreyNoise, VulnCheck
-                              │   ├── Reddit JSON, Mastodon, GitHub Advisories
-                              │   ├── NVD (NIST), Twitter API, Telegram Bot API
-                              │   └── Have I Been Pwned, URLhaus, MalwareBazaar
-                              ├── Severity Classifier
-                              ├── Source Credibility Scorer (4-tier)
-                              ├── Political Bias Tagger (7 categories)
-                              ├── Content Red Flag Detector
-                              ├── Dedup & Retention Engine (48h)
-                              ├── JSON Persistence (data/)
-                              └── SMTP Alerter (nodemailer)
+Browser (auto-launched)
+   │
+   ├── HTTP  → / (React bundle from dist/)
+   ├── HTTP  → /api/* (ingest, health, channels)
+   └── WS    → / (live channel updates, on the same origin)
+        │
+        ▼
+Node.js Server  (managed by PM2 — autorestart, 4.5 GB ceiling)
+   ├── Static file server (serves dist/)
+   ├── Universal Ingest API (POST /api/ingest)
+   ├── RSS Parser (rss-parser)
+   ├── API Fetchers
+   │   ├── ThreatFox, GreyNoise, VulnCheck
+   │   ├── Reddit JSON, Mastodon, GitHub Advisories
+   │   ├── NVD (NIST), Twitter API, Telegram Bot API
+   │   ├── Telegram public preview scraper (12 channels + backups)
+   │   └── Have I Been Pwned, URLhaus, MalwareBazaar
+   ├── Telegram Channel Health Monitor (auto-rotation)
+   ├── Severity Classifier
+   ├── Source Credibility Scorer (4-tier)
+   ├── Political Bias Tagger (7 categories)
+   ├── Content Red Flag Detector
+   ├── Dedup & Retention Engine (90 days)
+   ├── Memory Manager (tiered compaction → eviction)
+   ├── JSON Persistence (data/)
+   └── SMTP Alerter (nodemailer)
 ```
 
 ## Contributing

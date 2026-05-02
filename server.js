@@ -11,6 +11,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3001;
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const DATA_DIR = path.join(__dirname, "data");
+const DIST_DIR = path.join(__dirname, "dist");
+
+const MIME_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js":   "application/javascript; charset=utf-8",
+  ".mjs":  "application/javascript; charset=utf-8",
+  ".css":  "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".png":  "image/png",
+  ".jpg":  "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif":  "image/gif",
+  ".svg":  "image/svg+xml",
+  ".ico":  "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2":"font/woff2",
+  ".ttf":  "font/ttf",
+  ".map":  "application/json",
+};
 const MAX_ARTICLES = 5000; // per-channel soft cap (hard cap is memory-based)
 const RETENTION_DAYS = 90; // fallback time-based retention
 
@@ -1643,11 +1662,53 @@ function handleApiRequest(req, res) {
   res.end(JSON.stringify({ error: "Not found" }));
 }
 
+function serveStatic(req, res) {
+  let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+  if (urlPath === "/") urlPath = "/index.html";
+  const filePath = path.normalize(path.join(DIST_DIR, urlPath));
+
+  // Prevent directory traversal
+  if (!filePath.startsWith(DIST_DIR)) {
+    res.writeHead(403, { "Content-Type": "text/plain" });
+    res.end("Forbidden");
+    return;
+  }
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      // SPA fallback — serve index.html for client-side routes
+      fs.readFile(path.join(DIST_DIR, "index.html"), (err2, indexData) => {
+        if (err2) {
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("Frontend not built. Run: npm run build");
+          return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(indexData);
+      });
+      return;
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    const mime = MIME_TYPES[ext] || "application/octet-stream";
+    res.writeHead(200, { "Content-Type": mime });
+    res.end(data);
+  });
+}
+
 function startServer(port) {
-  // HTTP server for ingest API + health endpoints
+  const distExists = fs.existsSync(DIST_DIR);
+  if (distExists) {
+    console.log(`[SERVER] Serving frontend from ${DIST_DIR}`);
+  } else {
+    console.log(`[SERVER] No dist/ found — frontend not built (run 'npm run build')`);
+  }
+
   const httpServer = createServer((req, res) => {
     if (req.url?.startsWith("/api/")) {
       return handleApiRequest(req, res);
+    }
+    if (distExists) {
+      return serveStatic(req, res);
     }
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("Intel Hub running. WebSocket on this port, API at /api/*");

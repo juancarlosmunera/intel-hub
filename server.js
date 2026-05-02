@@ -613,18 +613,30 @@ const TELEGRAM_BOT = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHANNELS_PRIMARY = [
   // Threat Intel & Malware
   { handle: "vxunderground", category: "Threat Intel", label: "vx-underground" },
-  { handle: "hackgit", category: "Threat Intel", label: "HackGit" },
+  { handle: "malware_traffic", category: "Threat Intel", label: "Malware Traffic Analysis" },
+  { handle: "thedfirreport", category: "Threat Intel", label: "The DFIR Report" },
+  { handle: "infostealers", category: "Threat Intel", label: "Infostealers" },
+  // Ransomware & Leak Tracking
   { handle: "DarkfeedNews", category: "Ransomware", label: "DARKFEED" },
-  { handle: "dailydarkweb", category: "Dark Web", label: "Daily Dark Web" },
-  // Ransomware Tracking
   { handle: "RansomFeedNews", category: "Ransomware", label: "RansomFeed News" },
   { handle: "ransomlook", category: "Ransomware", label: "RansomLook" },
-  // OSINT & Geopolitics
-  { handle: "intelslava", category: "Geopolitics", label: "Intel Slava" },
-  { handle: "OsintTv", category: "OSINT", label: "OsintTV" },
+  { handle: "DataBreaches", category: "Dark Web", label: "DataBreaches.net" },
+  { handle: "RedPacketSecurity", category: "Dark Web", label: "Red Packet Security" },
+  { handle: "leakix", category: "Dark Web", label: "LeakIX" },
   // Cybersec News
   { handle: "thehackernews", category: "Cyber News", label: "The Hacker News" },
-  { handle: "true_secator", category: "Threat Intel", label: "SecAtor (RU)" },
+  { handle: "cybersecuritynews", category: "Cyber News", label: "Cyber Security News" },
+  { handle: "cybersecurityalerts", category: "Cyber News", label: "Cybersecurity Alerts" },
+  { handle: "Doomscroll", category: "Cyber News", label: "Doomscroll" },
+  // OSINT
+  { handle: "OsintTv", category: "OSINT", label: "OsintTV" },
+  { handle: "cyber_detective", category: "OSINT", label: "Cyber Detective" },
+  { handle: "bellingcat", category: "OSINT", label: "Bellingcat" },
+  { handle: "True_OSINT", category: "OSINT", label: "True OSINT" },
+  { handle: "osinttechniques", category: "OSINT", label: "OSINT Techniques" },
+  // Geopolitics
+  { handle: "intelslava", category: "Geopolitics", label: "Intel Slava" },
+  { handle: "breakingdefense", category: "Geopolitics", label: "Breaking Defense" },
   // Bug Bounty & Vuln Disclosure
   { handle: "thebugbountyhunter", category: "Bug Bounty", label: "Bug Bounty Hunter" },
   { handle: "bug_bounty_channel", category: "Bug Bounty", label: "Bug Bounty Channel" },
@@ -632,6 +644,7 @@ const TELEGRAM_CHANNELS_PRIMARY = [
 
 // Backup pool — rotated in when primary channels go stale/dead
 const TELEGRAM_CHANNELS_BACKUP = [
+  { handle: "true_secator", category: "Threat Intel", label: "SecAtor (RU)" },
   { handle: "secnewsru", category: "Cyber News", label: "Security News (RU)" },
   { handle: "f6_cybersecurity", category: "Threat Intel", label: "F6 Cybersecurity" },
   { handle: "cloudandcybersecurity", category: "Cyber News", label: "Cloud & Cybersecurity" },

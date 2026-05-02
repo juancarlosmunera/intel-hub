@@ -1,13 +1,13 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat feed intelligence aggregator with 7 channels, 170+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring, universal webhook ingest, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat feed intelligence aggregator with 7 channels, 185+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring (26+ channels with health-based auto-rotation), universal webhook ingest, and email alerting.
 
 ## Features
 
 - **7-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, Social Media, and Chat Feeds
-- **170+ feeds** aggregated in real-time via server-side parsing
+- **185+ feeds** aggregated in real-time via server-side parsing
 - **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST), Telegram
-- **Telegram monitoring** — 12 channels scraped via public preview with health checks, auto-rotation of dead channels, and backup pool
+- **Telegram monitoring** — 26 primary + 6 backup channels covering threat intel, ransomware, OSINT, geopolitics, and bug bounty; scraped via public preview with per-channel health checks and auto-rotation
 - **Universal ingest API** — `POST /api/ingest` accepts messages from any source (Tasker, iOS Shortcuts, Discord bots, signal-cli, etc.)
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
 - **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
@@ -119,15 +119,33 @@ npm run dev             # backend on 3001, Vite on 3000 (auto-opens browser)
 | NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
 | X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
 
-### Chat Feeds (12+ channels)
+### Chat Feeds (26 primary + 6 backup channels)
 
-Dedicated channel for chat-platform intelligence — separated from Social Media so it can be monitored, filtered, and alerted on independently.
+Dedicated channel for chat-platform intelligence — separated from Social Media so it can be monitored, filtered, and alerted on independently. All channels verified via public preview scraping; backup pool rotates in if primary channels go dead.
 
-| Source | Channels | Key Required? |
-|--------|----------|---------------|
-| Telegram (public preview scraper) | vx-underground, HackGit, DARKFEED, Daily Dark Web, RansomFeed News, RansomLook, Intel Slava, OsintTV, The Hacker News, SecAtor, Bug Bounty Hunter, Bug Bounty Channel — with health checks, dead-channel detection, and auto-rotation from a backup pool | No |
-| Telegram Bot API (optional) | Private channel monitoring (supplement to scraper) | Bot token (free) |
-| Universal Ingest API | Any messaging platform (Signal, WhatsApp, Discord, etc.) via `POST /api/ingest` webhook | Optional API key |
+**Threat Intel & Malware**
+- vx-underground, HackGit, Malware Traffic Analysis (Brad Duncan), The DFIR Report
+
+**Ransomware & Leak Tracking**
+- DARKFEED, RansomFeed News, RansomLook, Daily Dark Web, Red Packet Security
+
+**Cybersec News**
+- The Hacker News, BleepingComputer, Cyber Security News, Doomscroll
+
+**OSINT**
+- OsintTV, Cyber Detective, Bellingcat, True OSINT, OSINT Techniques
+
+**Geopolitics (multi-perspective)**
+- Intel Slava (RU-leaning), Ukraine Air Force Command, Ukraine MoD, UAWeapons OSINT, Breaking Defense
+
+**Bug Bounty & Vuln Disclosure**
+- Bug Bounty Hunter, Bug Bounty Channel
+
+| Source Type | Key Required? |
+|-------------|---------------|
+| Telegram public preview scraper (26 primary + 6 backup) | No |
+| Telegram Bot API (optional supplement for private channels) | Bot token (free) |
+| Universal Ingest API (any messaging platform via webhook) | Optional API key |
 
 ## API Integrations
 

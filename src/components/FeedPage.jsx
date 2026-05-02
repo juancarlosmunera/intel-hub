@@ -38,7 +38,9 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
     if (hideFlagged && a.redFlags.length > 0) return false;
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      return a.title.toLowerCase().includes(s) || a.cleanDescription.toLowerCase().includes(s);
+      return a.title.toLowerCase().includes(s)
+        || a.cleanDescription.toLowerCase().includes(s)
+        || (a.feedName && a.feedName.toLowerCase().includes(s));
     }
     return true;
   }).sort((a, b) => {

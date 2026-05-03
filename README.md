@@ -1,13 +1,13 @@
 # Intel Hub
 
-Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat feed intelligence aggregator with 7 channels, 185+ feeds, severity classification, source credibility scoring, political bias tagging, Telegram monitoring (26+ channels with health-based auto-rotation), universal webhook ingest, and email alerting.
+Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat feed intelligence aggregator with 7 channels, 170+ feeds, severity classification, source credibility scoring, political bias tagging, curated Telegram monitoring with freshness audit, universal webhook ingest, and email alerting.
 
 ## Features
 
 - **7-channel dashboard** — Cybersecurity, World News, Geopolitics & Defense, OSINT, Dark Web, Social Media, and Chat Feeds
-- **185+ feeds** aggregated in real-time via server-side parsing
+- **170+ feeds** aggregated in real-time via server-side parsing
 - **API integrations** — ThreatFox IoCs, GreyNoise, VulnCheck KEV, Reddit JSON, Mastodon, GitHub Advisories, NVD (NIST), Telegram
-- **Telegram monitoring** — 26 primary + 6 backup channels covering threat intel, ransomware, OSINT, geopolitics, and bug bounty; scraped via public preview with per-channel health checks and auto-rotation
+- **Telegram monitoring** — 11 primary + 2 backup channels, every one verified to post within the last 7 days; per-channel health checks, auto-rotation of dead channels, and a `npm run tg:audit` script to re-verify freshness
 - **Universal ingest API** — `POST /api/ingest` accepts messages from any source (Tasker, iOS Shortcuts, Discord bots, signal-cli, etc.)
 - **Auto-classification** — articles scored by severity (BREACH / CRITICAL / HIGH / MEDIUM / INFO)
 - **Keyword flagging** — 60+ keywords covering ransomware, APTs, breaches, exploits, and dark web activity
@@ -119,33 +119,38 @@ npm run dev             # backend on 3001, Vite on 3000 (auto-opens browser)
 | NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
 | X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
 
-### Chat Feeds (26 primary + 6 backup channels)
+### Chat Feeds (11 primary + 2 backup channels)
 
-Dedicated channel for chat-platform intelligence — separated from Social Media so it can be monitored, filtered, and alerted on independently. All channels verified via public preview scraping; backup pool rotates in if primary channels go dead.
+Dedicated channel for chat-platform intelligence — separated from Social Media so it can be monitored, filtered, and alerted on independently. The list is **deliberately small**: most "best cybersec Telegram" lists circulating online recommend channels that haven't posted in months or years. Every channel below was verified to post within the last 7 days at the time of the last audit. Run `npm run tg:audit` anytime to re-verify.
 
 **Threat Intel & Malware**
-- vx-underground, HackGit, Malware Traffic Analysis (Brad Duncan), The DFIR Report
+- vx-underground
 
 **Ransomware & Leak Tracking**
-- DARKFEED, RansomFeed News, RansomLook, Daily Dark Web, Red Packet Security
+- DARKFEED, RansomFeed News, RansomLook, Red Packet Security
 
 **Cybersec News**
-- The Hacker News, BleepingComputer, Cyber Security News, Doomscroll
+- The Hacker News
 
 **OSINT**
-- OsintTV, Cyber Detective, Bellingcat, True OSINT, OSINT Techniques
+- OsintTV, True OSINT
 
-**Geopolitics (multi-perspective)**
-- Intel Slava (RU-leaning), Ukraine Air Force Command, Ukraine MoD, UAWeapons OSINT, Breaking Defense
+**Geopolitics**
+- Intel Slava (Russian-language but high-volume conflict intel)
 
 **Bug Bounty & Vuln Disclosure**
 - Bug Bounty Hunter, Bug Bounty Channel
 
+**Backup pool** (Russian-language; promoted to primary if any primary goes stale)
+- SecAtor (RU), F6 Cybersecurity (RU)
+
 | Source Type | Key Required? |
 |-------------|---------------|
-| Telegram public preview scraper (26 primary + 6 backup) | No |
+| Telegram public preview scraper (11 primary + 2 backup) | No |
 | Telegram Bot API (optional supplement for private channels) | Bot token (free) |
 | Universal Ingest API (any messaging platform via webhook) | Optional API key |
+
+**Why so few?** The English-language professional cybersec community has largely migrated off Telegram to Mastodon, X, Discord, and direct news sources. Vendor lists like "Top 10 Cybersec Telegram Channels" frequently still cite channels that went dark in 2022–2024. We picked freshness over channel count.
 
 ## API Integrations
 
@@ -161,7 +166,7 @@ These feeds use dedicated API calls (not RSS):
 | GitHub Advisories | Reviewed security advisories with CVSS | None (always active) |
 | NVD (NIST) | High-severity CVEs, last 3 days | None (rate-limited) |
 | Twitter API v2 | Keyword search across X/Twitter | Bearer token ($100/mo) |
-| Telegram Public Scraper | 12 channels with health checks and auto-rotation | None (always active) |
+| Telegram Public Scraper | 11 primary + 2 backup channels with health checks and auto-rotation | None (always active) |
 | Telegram Bot API | Private channel monitoring (supplement) | Bot token (free, optional) |
 
 ## Universal Ingest API
@@ -237,6 +242,29 @@ Designed for long-running production deployments without manual intervention:
 | 3 | > 6 h | 50 chars + non-essential fields stripped |
 
 Adjust the cap with `MEMORY_CAP_MB` in `.env`.
+
+## Telegram Channel Audit
+
+The Chat Feeds list is curated to channels that actually post. To re-verify any time:
+
+```bash
+npm run tg:audit
+```
+
+The script reads the channel list straight from `server.js`, hits each channel's public preview at `t.me/s/{handle}`, and prints a freshness table:
+
+```
+Pool      Status   Age     Posts  Handle / Label
+-----------------------------------------------------------------
+primary   HOT      0h      20     @RedPacketSecurity   Red Packet Security
+primary   HOT      3h      20     @ransomlook          RansomLook
+primary   OK       3d      20     @RansomFeedNews      RansomFeed News
+backup    OK       2d      20     @true_secator        SecAtor (RU)
+...
+Legend: HOT <24h · OK <7d · STALE <30d · DORMANT >30d · DEAD no-data
+```
+
+Run it monthly or before any demo. Channels stuck in `STALE`/`DORMANT` are candidates for replacement.
 
 ## Source Credibility System
 

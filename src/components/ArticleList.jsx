@@ -3,7 +3,7 @@ import Pulse from "./Pulse";
 import { timeAgo } from "../utils/classify";
 import { SEVERITY_RULES } from "../constants/severity";
 
-export default function ArticleList({ filtered, severityFilter, setSeverityFilter }) {
+export default function ArticleList({ filtered, severityFilter, setSeverityFilter, sortMode = "latest" }) {
   const [selectedArticle, setSelectedArticle] = useState(null);
 
   return (
@@ -37,7 +37,7 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               </span>
             )}
           </span>
-          <span>{severityFilter ? "Filtered by severity" : "BREACH & CRITICAL pinned to top"}</span>
+          <span>{severityFilter ? "Filtered by severity" : sortMode === "severity" ? "BREACH & CRITICAL pinned to top" : "Newest first"}</span>
         </div>
 
         {filtered.length === 0 ? (

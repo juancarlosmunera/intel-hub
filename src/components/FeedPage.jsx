@@ -14,6 +14,7 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [hideFlagged, setHideFlagged] = useState(false);
+  const [sortMode, setSortMode] = useState("latest"); // "latest" | "severity"
 
   const articles = rawArticles.map(item => {
     const fullText = `${item.title} ${item.description || ""}`;
@@ -44,13 +45,23 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
     }
     return true;
   }).sort((a, b) => {
+    // Clamp future-dated articles to "now" so they don't sort above present ones
+    const now = Date.now();
+    const ta = Math.min(new Date(a.pubDate).getTime(), now);
+    const tb = Math.min(new Date(b.pubDate).getTime(), now);
     const ra = SEVERITY_RANK[a.severity.level] ?? 4;
     const rb = SEVERITY_RANK[b.severity.level] ?? 4;
-    const aUrgent = ra <= 1 ? 0 : 1;
-    const bUrgent = rb <= 1 ? 0 : 1;
-    if (aUrgent !== bUrgent) return aUrgent - bUrgent;
-    if (aUrgent === 0 && bUrgent === 0 && ra !== rb) return ra - rb;
-    return new Date(b.pubDate) - new Date(a.pubDate);
+
+    if (sortMode === "severity") {
+      const aUrgent = ra <= 1 ? 0 : 1;
+      const bUrgent = rb <= 1 ? 0 : 1;
+      if (aUrgent !== bUrgent) return aUrgent - bUrgent;
+      if (aUrgent === 0 && bUrgent === 0 && ra !== rb) return ra - rb;
+      return tb - ta;
+    }
+    // sortMode === "latest" — newest first; severity rank breaks ties
+    if (tb !== ta) return tb - ta;
+    return ra - rb;
   });
 
   const activeFeedCount = Object.values(feedStats).filter(s => s.status === "ok").length;
@@ -170,6 +181,39 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
               Hide Flagged ({flaggedCount})
             </button>
           )}
+
+          <div style={{
+            display: "flex", alignItems: "center", gap: 0,
+            border: "1px solid #1a2436", borderRadius: 6, overflow: "hidden",
+          }} title="Choose sort order">
+            <span style={{ fontSize: 9, color: "#3a4a5e", padding: "0 8px 0 10px", letterSpacing: 0.5, textTransform: "uppercase" }}>
+              Sort
+            </span>
+            <button
+              onClick={() => setSortMode("latest")}
+              style={{
+                padding: "6px 12px", fontSize: 10, fontFamily: "inherit",
+                border: "none", borderLeft: "1px solid #1a2436", cursor: "pointer",
+                background: sortMode === "latest" ? `${accentColor}20` : "transparent",
+                color: sortMode === "latest" ? accentColor : "#6b7a8d",
+                fontWeight: sortMode === "latest" ? 700 : 500, letterSpacing: 0.5,
+              }}
+            >
+              LATEST
+            </button>
+            <button
+              onClick={() => setSortMode("severity")}
+              style={{
+                padding: "6px 12px", fontSize: 10, fontFamily: "inherit",
+                border: "none", borderLeft: "1px solid #1a2436", cursor: "pointer",
+                background: sortMode === "severity" ? "#ff2d5520" : "transparent",
+                color: sortMode === "severity" ? "#ff2d55" : "#6b7a8d",
+                fontWeight: sortMode === "severity" ? 700 : 500, letterSpacing: 0.5,
+              }}
+            >
+              SEVERITY
+            </button>
+          </div>
         </div>
 
         {/* FEED STATUS BAR */}
@@ -211,7 +255,7 @@ export default function FeedPage({ channel, title, subtitle, feeds, alertKeyword
             <div style={{ fontSize: 12, letterSpacing: 1 }}>SCANNING FEEDS...</div>
           </div>
         ) : (
-          <ArticleList filtered={filtered} severityFilter={severityFilter} setSeverityFilter={setSeverityFilter} />
+          <ArticleList filtered={filtered} severityFilter={severityFilter} setSeverityFilter={setSeverityFilter} sortMode={sortMode} />
         )}
       </div>
     </>

@@ -1,7 +1,7 @@
 export const FEEDS = [
   // ── Ransomware Tracking ──
   { name: "Ransomware.live", category: "Ransomware" },
-  { name: "RansomFeed.it", category: "Ransomware" },
+  { name: "Ransomfeed.it", category: "Ransomware Tracking" },
   { name: "DarkFeed", category: "Ransomware" },
   { name: "The DFIR Report", category: "Ransomware" },
   // ── Breach & Leak Journalism ──

@@ -168,7 +168,7 @@ export const SOURCE_BIAS = {
 
   // ── DARK WEB CHANNEL ───────────────────────────────────────
   "Ransomware.live": "N",
-  "RansomFeed.it": "N",
+  "Ransomfeed.it": "N",
   "DarkFeed": "N",
   "The DFIR Report": "N",
   "DataBreaches.net": "N",

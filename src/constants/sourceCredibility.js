@@ -173,12 +173,13 @@ export const SOURCE_TRUST = {
   // ── DARK WEB CHANNEL ─────────────────────────────────────────
   // Tier 1: Raw data / government
   "Ransomware.live": 1,
+  "Ransomfeed.it": 1,
   "Have I Been Pwned": 1,
   "SANS ISC": 1,
   "UK NCSC Reports": 1,
 
   // Tier 2: Established research & journalism
-  "RansomFeed.it": 2,
+
   "DarkFeed": 2,
   "DataBreaches.net": 2,
   "Troy Hunt": 2,

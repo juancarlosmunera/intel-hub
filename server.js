@@ -538,11 +538,59 @@ async function fetchHIBPBreaches() {
   }
 }
 
+// ── Ransomfeed.it API (no key required) ───────────────────────
+// Tracks ransomware victim disclosures across 88+ active gangs.
+// API: https://api.ransomfeed.it/docs/html
+
+async function fetchRansomfeed() {
+  try {
+    const year = new Date().getUTCFullYear();
+    // Pull current year's victims; API returns newest first.
+    const res = await fetch(`https://api.ransomfeed.it/date/${year}/offset/100`, {
+      headers: {
+        "User-Agent": "IntelHub/2.0 (cybersec monitoring dashboard)",
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) throw new Error(`Ransomfeed API: ${res.status}`);
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return [];
+
+    return rows.slice(0, 80).map((r) => {
+      const victim = r.victim || "Unknown victim";
+      const gang = r.gang || "unknown";
+      const country = r.country || "";
+      const sector = r.work_sector || "";
+      const website = r.website ? r.website.replace(/^https?:\/\//i, "") : "";
+
+      const meta = [country, sector, website].filter(Boolean).join(" · ");
+      const desc = (r.description || "").slice(0, 240);
+
+      // Convert "YYYY-MM-DD HH:MM:SS" (UTC) → ISO
+      const iso = r.date
+        ? new Date(r.date.replace(" ", "T") + "Z").toISOString()
+        : new Date().toISOString();
+
+      return {
+        title: `${gang.toUpperCase()} ransomware: ${victim}${country ? ` (${country})` : ""}`,
+        link: r.id ? `https://www.ransomfeed.it/?page=post&id_post=${r.id}` : "https://www.ransomfeed.it/",
+        pubDate: iso,
+        description: meta ? `${meta}\n${desc}` : desc,
+        feedName: "Ransomfeed.it",
+        feedCategory: "Ransomware Tracking",
+      };
+    });
+  } catch (e) {
+    console.error("[API] Ransomfeed:", e.message);
+    return [];
+  }
+}
+
 async function fetchDarkWebApiFeeds() {
-  const results = await Promise.allSettled([fetchHIBPBreaches()]);
+  const results = await Promise.allSettled([fetchHIBPBreaches(), fetchRansomfeed()]);
   const items = [];
   const stats = {};
-  const names = ["Have I Been Pwned"];
+  const names = ["Have I Been Pwned", "Ransomfeed.it"];
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
     const name = names[i];
@@ -1126,6 +1174,40 @@ function stripHtml(html) {
   return (html || "").replace(/<[^>]*>/g, "").replace(/&[a-z]+;/gi, " ").trim();
 }
 
+// Detect sponsored / affiliate marketing content syndicated through RSS feeds.
+// CNN World, NY Post, and several other outlets occasionally publish credit-card,
+// home-equity, and insurance promo posts via their RSS that aren't real news.
+const PROMO_PATTERNS = [
+  // Financial product spam
+  /\b(cash[\s-]?back|home\s+equity|reverse\s+mortgage|refinanc(e|ing)|personal\s+loan|business\s+loan)\b/i,
+  /\b\d+%\s+(intro\s+)?APR\b/i,
+  /\bintro\s+APR\b/i,
+  /\bbest\s+(credit\s+card|cash\s+back|cashback|loan|mortgage|rate|deal|offer|reward)\b/i,
+  /\b(turn|convert)\s+your\s+\w+\s+(into|to)\s+(cash|money)\b/i,
+  /\b(want|need)\s+cash\s+(out|fast|now|today)\b/i,
+  /\bcash\s+out\s+of\s+your\s+(home|house|property)\b/i,
+  /\brising\s+home\s+equity\b/i,
+  /\b(dream\s+big|cash\s+you\s+can\s+use)\b/i,
+  /\bavoid\s+credit\s+card\s+interest\b/i,
+  /\blower\s+your\s+(payment|bill|cost|premium)\b/i,
+  /\b(insurance|warranty|extended\s+warranty)\s+(quote|rate)s?\b/i,
+  // Clickbait promo openers
+  /^(experts?|doctors?|surveys?|study|new\s+study|it'?s\s+official):\s+/i,
+  /\b\d+%\s+intro\s+(rate|APR|offer)\b/i,
+  /\bbest\s+\w+\s+(card|loan|mortgage)\s+of\s+\d{4}\b/i,
+  // Sponsored / advertorial markers
+  /\b(sponsored|advertisement|advertorial|promoted)\b/i,
+  /\bpaid\s+(content|partnership|post)\b/i,
+];
+
+function isPromotionalContent({ title = "", description = "", link = "" }) {
+  const haystack = `${title} ${description}`;
+  if (PROMO_PATTERNS.some(p => p.test(haystack))) return true;
+  // Affiliate/redirect URL hints
+  if (/[?&](aff(iliate)?|utm_(campaign|source)=(promo|sponsor|affiliate)|partner_id|click_id)=/i.test(link)) return true;
+  return false;
+}
+
 async function fetchChannelFeeds(channelId) {
   const channel = CHANNELS[channelId];
   if (!channel) return { articles: [], stats: {} };
@@ -1137,7 +1219,7 @@ async function fetchChannelFeeds(channelId) {
     channel.feeds.map(async (feed) => {
       try {
         const parsed = await parser.parseURL(feed.url);
-        const items = (parsed.items || []).slice(0, 30).map((item) => ({
+        const rawItems = (parsed.items || []).slice(0, 30).map((item) => ({
           title: item.title || "",
           link: item.link || "",
           pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
@@ -1145,6 +1227,11 @@ async function fetchChannelFeeds(channelId) {
           feedName: feed.name,
           feedCategory: feed.category,
         }));
+        const items = rawItems.filter(item => !isPromotionalContent(item));
+        const dropped = rawItems.length - items.length;
+        if (dropped > 0) {
+          console.log(`[PROMO-FILTER] ${feed.name}: dropped ${dropped} sponsored/marketing item(s)`);
+        }
         stats[feed.name] = { count: items.length, status: "ok" };
         return items;
       } catch (e) {

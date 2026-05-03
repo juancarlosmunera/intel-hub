@@ -1,0 +1,23 @@
+# Build artefacts and local state — never copy into the image
+node_modules
+dist
+data
+logs
+.env
+.env.local
+.git
+.gitignore
+.github
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Docs and dev-only files
+*.md
+docs
+
+# PM2 (Docker uses its own process model)
+ecosystem.config.cjs

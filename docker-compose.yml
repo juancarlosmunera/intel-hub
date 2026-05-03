@@ -1,0 +1,27 @@
+services:
+  intel-hub:
+    build: .
+    image: intel-hub:latest
+    container_name: intel-hub
+    ports:
+      - "3001:3001"
+    volumes:
+      # Persist scraped articles, Telegram health state, etc. across restarts
+      - intel_hub_data:/app/data
+    env_file:
+      # Optional — copy .env.example to .env to enable email alerts, API keys, etc.
+      - path: .env
+        required: false
+    environment:
+      NODE_ENV: production
+      MEMORY_CAP_MB: 4096
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  intel_hub_data:

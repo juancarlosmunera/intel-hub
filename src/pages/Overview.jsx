@@ -140,18 +140,18 @@ function ChannelSummary({ channel, searchFilter = "" }) {
             {article.severity.level}
           </span>
           <span className="tag" style={{
-            background: `${article.trust.color}10`,
+            background: `color-mix(in srgb, ${article.trust.color} 10%, transparent)`,
             color: article.trust.color,
-            border: `1px solid ${article.trust.color}25`,
+            border: `1px solid color-mix(in srgb, ${article.trust.color} 25%, transparent)`,
             fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
           }} title={article.trust.description}>
             {article.trust.label}
           </span>
           {article.bias && article.bias.code !== "N" && (
             <span className="tag" style={{
-              background: `${article.bias.color}10`,
+              background: `color-mix(in srgb, ${article.bias.color} 10%, transparent)`,
               color: article.bias.color,
-              border: `1px solid ${article.bias.color}25`,
+              border: `1px solid color-mix(in srgb, ${article.bias.color} 25%, transparent)`,
               fontSize: 8, fontWeight: 700, letterSpacing: 0.5,
             }} title={`Political leaning: ${article.bias.label}`}>
               {article.bias.short}

@@ -39,6 +39,21 @@
   --status-live: #1a7f37;
   --status-off:  #cf222e;
 
+  /* Source credibility tiers — light: darkened for contrast on white */
+  --trust-1: #0e7490;
+  --trust-2: #15803d;
+  --trust-3: #a16207;
+  --trust-4: #be123c;
+
+  /* Political bias — light: darkened for contrast on white */
+  --bias-L:  #1e40af;
+  --bias-LL: #2563eb;
+  --bias-C:  #525252;
+  --bias-LR: #c2410c;
+  --bias-R:  #b91c1c;
+  --bias-I:  #7c3aed;
+  --bias-N:  #64748b;
+
   /* Effects */
   --shadow-card: 0 1px 2px rgba(16,24,40,0.06), 0 1px 3px rgba(16,24,40,0.08);
   --scrollbar-track: #e7e9ec;
@@ -74,6 +89,21 @@
 
   --status-live: #3fb950;
   --status-off:  #ff2d55;
+
+  /* Source credibility tiers — dark: unchanged */
+  --trust-1: #00e5ff;
+  --trust-2: #00ff88;
+  --trust-3: #ffcc00;
+  --trust-4: #ff6b8a;
+
+  /* Political bias — dark: unchanged */
+  --bias-L:  #5e9cff;
+  --bias-LL: #7eb3ff;
+  --bias-C:  #a0a0a0;
+  --bias-LR: #ffb36b;
+  --bias-R:  #ff7b5e;
+  --bias-I:  #c792ea;
+  --bias-N:  #4a5a6e;
 
   --shadow-card: none;
   --scrollbar-track: #0d1220;

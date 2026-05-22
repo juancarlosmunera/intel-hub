@@ -10,14 +10,15 @@
 // I  — Independent (no institutional alignment)
 // N  — Nonpartisan / Not Applicable (technical, govt, data feeds)
 
+// color is a CSS variable so it adapts to the active theme (see global.css)
 export const BIAS_LABELS = {
-  L:  { label: "LEFT",        color: "#5e9cff", short: "L"  },
-  LL: { label: "LEAN LEFT",   color: "#7eb3ff", short: "LL" },
-  C:  { label: "CENTER",      color: "#a0a0a0", short: "C"  },
-  LR: { label: "LEAN RIGHT",  color: "#ffb36b", short: "LR" },
-  R:  { label: "RIGHT",       color: "#ff7b5e", short: "R"  },
-  I:  { label: "INDEPENDENT", color: "#c792ea", short: "I"  },
-  N:  { label: "NONPARTISAN", color: "#4a5a6e", short: "N"  },
+  L:  { label: "LEFT",        color: "var(--bias-L)",  short: "L"  },
+  LL: { label: "LEAN LEFT",   color: "var(--bias-LL)", short: "LL" },
+  C:  { label: "CENTER",      color: "var(--bias-C)",  short: "C"  },
+  LR: { label: "LEAN RIGHT",  color: "var(--bias-LR)", short: "LR" },
+  R:  { label: "RIGHT",       color: "var(--bias-R)",  short: "R"  },
+  I:  { label: "INDEPENDENT", color: "var(--bias-I)",  short: "I"  },
+  N:  { label: "NONPARTISAN", color: "var(--bias-N)",  short: "N"  },
 };
 
 export const SOURCE_BIAS = {

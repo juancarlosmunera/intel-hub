@@ -77,9 +77,9 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   {article.trust && (
                     <span className="tag" style={{
-                      background: `${article.trust.color}15`,
+                      background: `color-mix(in srgb, ${article.trust.color} 15%, transparent)`,
                       color: article.trust.color,
-                      border: `1px solid ${article.trust.color}30`,
+                      border: `1px solid color-mix(in srgb, ${article.trust.color} 30%, transparent)`,
                       fontWeight: 700, fontSize: 8, letterSpacing: 0.8,
                     }} title={article.trust.description}>
                       {article.trust.label}
@@ -93,9 +93,9 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                   </span>
                   {article.bias && article.bias.code !== "N" && (
                     <span className="tag" style={{
-                      background: `${article.bias.color}15`,
+                      background: `color-mix(in srgb, ${article.bias.color} 15%, transparent)`,
                       color: article.bias.color,
-                      border: `1px solid ${article.bias.color}30`,
+                      border: `1px solid color-mix(in srgb, ${article.bias.color} 30%, transparent)`,
                       fontWeight: 700, fontSize: 8, letterSpacing: 0.8,
                     }} title={`Political leaning: ${article.bias.label}`}>
                       {article.bias.label}
@@ -150,9 +150,9 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               </span>
               {selectedArticle.trust && (
                 <span className="tag" style={{
-                  background: `${selectedArticle.trust.color}15`,
+                  background: `color-mix(in srgb, ${selectedArticle.trust.color} 15%, transparent)`,
                   color: selectedArticle.trust.color,
-                  border: `1px solid ${selectedArticle.trust.color}30`,
+                  border: `1px solid color-mix(in srgb, ${selectedArticle.trust.color} 30%, transparent)`,
                   fontWeight: 700,
                 }}>
                   {selectedArticle.trust.label}
@@ -163,9 +163,9 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               </span>
               {selectedArticle.bias && selectedArticle.bias.code !== "N" && (
                 <span className="tag" style={{
-                  background: `${selectedArticle.bias.color}15`,
+                  background: `color-mix(in srgb, ${selectedArticle.bias.color} 15%, transparent)`,
                   color: selectedArticle.bias.color,
-                  border: `1px solid ${selectedArticle.bias.color}30`,
+                  border: `1px solid color-mix(in srgb, ${selectedArticle.bias.color} 30%, transparent)`,
                   fontWeight: 700,
                 }}>
                   {selectedArticle.bias.label}

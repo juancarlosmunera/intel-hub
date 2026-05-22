@@ -11,11 +11,12 @@
 // Tier 4 — AGGREGATOR: Content aggregators, smaller blogs,
 //          less established or unvetted sources.
 
+// color is a CSS variable so it adapts to the active theme (see global.css)
 export const TRUST_TIERS = {
-  1: { label: "PRIMARY", color: "#00e5ff", description: "Official / Primary Source" },
-  2: { label: "VERIFIED", color: "#00ff88", description: "Established & Reputable" },
-  3: { label: "INDUSTRY", color: "#ffcc00", description: "Industry / Vendor" },
-  4: { label: "UNVETTED", color: "#ff6b8a", description: "Aggregator / Unvetted" },
+  1: { label: "PRIMARY", color: "var(--trust-1)", description: "Official / Primary Source" },
+  2: { label: "VERIFIED", color: "var(--trust-2)", description: "Established & Reputable" },
+  3: { label: "INDUSTRY", color: "var(--trust-3)", description: "Industry / Vendor" },
+  4: { label: "UNVETTED", color: "var(--trust-4)", description: "Aggregator / Unvetted" },
 };
 
 // Map every feed name → trust tier

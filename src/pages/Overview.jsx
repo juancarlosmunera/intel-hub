@@ -12,13 +12,13 @@ import { ALERT_KEYWORDS as CHAT_KW } from "../constants/chatFeeds";
 import Pulse from "../components/Pulse";
 
 const CHANNELS = [
-  { id: "cyber", label: "Cybersecurity", icon: "CS", color: "#00ff88", path: "/cyber", keywords: CYBER_KW },
-  { id: "world", label: "World News", icon: "WN", color: "#64d2ff", path: "/world", keywords: WORLD_KW },
-  { id: "geopolitics", label: "Geopolitics", icon: "GP", color: "#ff6b35", path: "/geopolitics", keywords: [...WORLD_KW, "Iran", "CENTCOM", "airstrike", "missile", "NATO", "escalation", "ceasefire", "nuclear", "sanctions"] },
-  { id: "osint", label: "OSINT", icon: "OS", color: "#ff9500", path: "/osint", keywords: OSINT_KW },
-  { id: "darkweb", label: "Dark Web", icon: "DW", color: "#ff2255", path: "/darkweb", keywords: DARKWEB_KW },
-  { id: "social", label: "Social Media", icon: "SM", color: "#7c4dff", path: "/social", keywords: SOCIAL_KW },
-  { id: "chatfeeds", label: "Chat Feeds", icon: "CF", color: "#00d4aa", path: "/chatfeeds", keywords: CHAT_KW },
+  { id: "cyber", label: "Cybersecurity", icon: "CS", color: "var(--accent)", path: "/cyber", keywords: CYBER_KW },
+  { id: "world", label: "World News", icon: "WN", color: "var(--accent)", path: "/world", keywords: WORLD_KW },
+  { id: "geopolitics", label: "Geopolitics", icon: "GP", color: "var(--accent)", path: "/geopolitics", keywords: [...WORLD_KW, "Iran", "CENTCOM", "airstrike", "missile", "NATO", "escalation", "ceasefire", "nuclear", "sanctions"] },
+  { id: "osint", label: "OSINT", icon: "OS", color: "var(--accent)", path: "/osint", keywords: OSINT_KW },
+  { id: "darkweb", label: "Dark Web", icon: "DW", color: "var(--accent)", path: "/darkweb", keywords: DARKWEB_KW },
+  { id: "social", label: "Social Media", icon: "SM", color: "var(--accent)", path: "/social", keywords: SOCIAL_KW },
+  { id: "chatfeeds", label: "Chat Feeds", icon: "CF", color: "var(--accent)", path: "/chatfeeds", keywords: CHAT_KW },
 ];
 
 function ChannelSummary({ channel, searchFilter = "" }) {
@@ -61,8 +61,8 @@ function ChannelSummary({ channel, searchFilter = "" }) {
 
   return (
     <div style={{
-      background: "linear-gradient(135deg, #0c1220 0%, #101b2d 100%)",
-      border: "1px solid #1a2436",
+      background: "var(--bg-surface)",
+      border: "1px solid var(--border)",
       borderRadius: 12,
       overflow: "hidden",
       transition: "border-color 0.2s",
@@ -71,7 +71,7 @@ function ChannelSummary({ channel, searchFilter = "" }) {
       <div
         style={{
           padding: "16px 20px",
-          borderBottom: "1px solid #111a28",
+          borderBottom: "1px solid var(--border-subtle)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           cursor: "pointer",
         }}
@@ -84,16 +84,14 @@ function ChannelSummary({ channel, searchFilter = "" }) {
             background: `${channel.color}15`, color: channel.color,
             border: `1px solid ${channel.color}30`,
             display: "inline-flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "'Space Grotesk', monospace",
           }}>{channel.icon}</span>
           <div>
             <div style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 14, fontWeight: 700, color: "#e8edf2",
+              fontSize: 14, fontWeight: 700, color: "var(--text-primary)",
             }}>
               {channel.label}
             </div>
-            <div style={{ fontSize: 10, color: "#3a4a5e" }}>
+            <div style={{ fontSize: 10, color: "var(--text-faint)" }}>
               {activeFeedCount} feeds active · {display.length}{searchFilter ? ` match${display.length !== 1 ? "es" : ""}` : " items"}
             </div>
           </div>
@@ -103,13 +101,13 @@ function ChannelSummary({ channel, searchFilter = "" }) {
           {criticalCount > 0 && <span className="tag" style={{ background: "#ff2d5515", color: "#ff2d55", border: "1px solid #ff2d5530" }}>{criticalCount} CRITICAL</span>}
           {highCount > 0 && <span className="tag" style={{ background: "#ff950015", color: "#ff9500", border: "1px solid #ff950030" }}>{highCount} HIGH</span>}
           <span className="ws-badge" style={{
-            background: connected ? `${channel.color}15` : "#ff2d5515",
-            color: connected ? channel.color : "#ff2d55",
-            border: `1px solid ${connected ? `${channel.color}30` : "#ff2d5530"}`,
+            background: "var(--accent-bg)",
+            color: connected ? "var(--status-live)" : "var(--status-off)",
+            border: "1px solid var(--accent-border)",
           }}>
             <span style={{
               width: 5, height: 5, borderRadius: "50%",
-              background: connected ? channel.color : "#ff2d55",
+              background: connected ? "var(--status-live)" : "var(--status-off)",
               display: "inline-block",
             }} />
             {connected ? "LIVE" : "OFF"}
@@ -123,13 +121,13 @@ function ChannelSummary({ channel, searchFilter = "" }) {
           key={`${article.title}-${i}`}
           style={{
             padding: "10px 20px",
-            borderBottom: "1px solid #0d1422",
+            borderBottom: "1px solid var(--border-subtle)",
             display: "flex", alignItems: "center", gap: 12,
             cursor: "pointer",
             transition: "background 0.15s",
           }}
           onClick={() => article.link && window.open(article.link, "_blank")}
-          onMouseEnter={e => e.currentTarget.style.background = "#0d1422"}
+          onMouseEnter={e => e.currentTarget.style.background = "var(--bg-hover)"}
           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
         >
           <Pulse color={article.severity.color} />
@@ -159,10 +157,10 @@ function ChannelSummary({ channel, searchFilter = "" }) {
               {article.bias.short}
             </span>
           )}
-          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "#dce3ea", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {article.title}
           </div>
-          <span style={{ fontSize: 10, color: "#3a4a5e", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 10, color: "var(--text-faint)", whiteSpace: "nowrap" }}>
             {timeAgo(article.pubDate)}
           </span>
         </div>
@@ -173,7 +171,7 @@ function ChannelSummary({ channel, searchFilter = "" }) {
         style={{
           padding: "10px 20px",
           textAlign: "center",
-          fontSize: 11, color: channel.color,
+          fontSize: 11, color: "var(--accent)",
           cursor: "pointer",
           fontWeight: 600,
           letterSpacing: 0.5,
@@ -195,19 +193,18 @@ export default function Overview() {
     <>
       <header style={{
         padding: "20px 28px 16px",
-        borderBottom: "1px solid #111a28",
-        background: "linear-gradient(180deg, #0c1220 0%, #0a0e17 100%)",
+        borderBottom: "1px solid var(--border-subtle)",
+        background: "var(--bg-surface)",
         position: "sticky", top: 0, zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
           <div>
             <h1 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 18, fontWeight: 700, color: "#e8edf2", letterSpacing: -0.5,
+              fontSize: 18, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.5,
             }}>
               INTEL HUB — OVERVIEW
             </h1>
-            <div style={{ fontSize: 10, color: "#3a4a5e", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>
+            <div style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>
               All Channels · Top Alerts · Real-Time
             </div>
           </div>
@@ -220,29 +217,28 @@ export default function Overview() {
               style={{
                 width: "100%",
                 padding: "10px 14px 10px 36px",
-                background: "#0d1422",
-                border: "1px solid #1a2436",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border)",
                 borderRadius: 8,
-                color: "#e8edf2",
+                color: "var(--text-primary)",
                 fontSize: 13,
-                fontFamily: "'Space Grotesk', 'Inter', sans-serif",
                 outline: "none",
                 transition: "border-color 0.2s",
               }}
-              onFocus={e => e.target.style.borderColor = "#00ff88"}
-              onBlur={e => e.target.style.borderColor = "#1a2436"}
+              onFocus={e => e.target.style.borderColor = "var(--accent)"}
+              onBlur={e => e.target.style.borderColor = "var(--border)"}
             />
             <span style={{
               position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)",
-              fontSize: 14, color: "#3a4a5e", pointerEvents: "none",
+              fontSize: 14, color: "var(--text-faint)", pointerEvents: "none",
             }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a4a5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
             </span>
             {search && (
               <span
                 style={{
                   position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                  fontSize: 14, color: "#3a4a5e", cursor: "pointer",
+                  fontSize: 14, color: "var(--text-faint)", cursor: "pointer",
                 }}
                 onClick={() => setSearch("")}
               >

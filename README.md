@@ -19,9 +19,23 @@
 
 ## Quick Start
 
-Two ways to run Intel Hub. Both end at `http://localhost:3001`.
+Three ways to run Intel Hub. All end at `http://localhost:3001`.
 
-### Option A — Docker (recommended)
+### Option A — Prebuilt Docker image (fastest)
+
+No clone, no build. Pulls the published image from GitHub Container Registry:
+
+```bash
+docker run -d --name intel-hub \
+  -p 3001:3001 \
+  -v intel_hub_data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/juancarlosmunera/intel-hub:latest
+```
+
+To upgrade: `docker pull ghcr.io/juancarlosmunera/intel-hub:latest` then recreate the container.
+
+### Option B — Docker Compose (build from source)
 
 ```bash
 git clone https://github.com/juancarlosmunera/intel-hub.git
@@ -39,7 +53,7 @@ docker compose down -v             # stop AND wipe scraped data
 
 Articles persist in a named Docker volume across restarts. To upgrade: `git pull && docker compose up -d --build`.
 
-### Option B — Native Node.js + PM2
+### Option C — Native Node.js + PM2
 
 Requires **Node.js 18+**.
 
@@ -58,6 +72,20 @@ Other commands: `npm run logs`, `npm run status`, `npm run stop`, `npm run resta
 ```bash
 npm run dev             # backend on 3001, Vite on 3000 (auto-opens browser)
 ```
+
+### Windows
+
+Docker Desktop (Options A and B) is the smoothest path on Windows — it works identically to Mac and Linux.
+
+For the native Node path, **WSL2** is recommended over native Windows so the Linux-tested process management and scripts behave the same:
+
+```powershell
+wsl --install -d Ubuntu          # PowerShell as Admin, one-time
+```
+
+Then inside Ubuntu, install Node 20 (via [nvm](https://github.com/nvm-sh/nvm)) and follow Option C. To run on boot, add `cd ~/intel-hub && npx pm2 resurrect` to `~/.bashrc` and run `npx pm2 save` once.
+
+Native Windows Node works too, but PM2 boot-autostart needs `pm2-windows-startup` (`npm i -g pm2-windows-startup && pm2-startup install`), and PM2 cluster mode should stay at `instances: 1` (already the default).
 
 ## Channels at a glance
 

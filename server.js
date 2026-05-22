@@ -1208,6 +1208,17 @@ function isPromotionalContent({ title = "", description = "", link = "" }) {
   return false;
 }
 
+// Drop items dated more than 24h in the future — usually conference/event
+// placeholders (e.g. "Black Hat USA") that would otherwise pin to the top
+// of a newest-first sort.
+const FUTURE_DATE_TOLERANCE_MS = 24 * 60 * 60 * 1000;
+
+function isFutureDated({ pubDate }) {
+  const t = new Date(pubDate).getTime();
+  if (Number.isNaN(t)) return false;
+  return t > Date.now() + FUTURE_DATE_TOLERANCE_MS;
+}
+
 async function fetchChannelFeeds(channelId) {
   const channel = CHANNELS[channelId];
   if (!channel) return { articles: [], stats: {} };
@@ -1227,10 +1238,10 @@ async function fetchChannelFeeds(channelId) {
           feedName: feed.name,
           feedCategory: feed.category,
         }));
-        const items = rawItems.filter(item => !isPromotionalContent(item));
+        const items = rawItems.filter(item => !isPromotionalContent(item) && !isFutureDated(item));
         const dropped = rawItems.length - items.length;
         if (dropped > 0) {
-          console.log(`[PROMO-FILTER] ${feed.name}: dropped ${dropped} sponsored/marketing item(s)`);
+          console.log(`[FEED-FILTER] ${feed.name}: dropped ${dropped} sponsored/future-dated item(s)`);
         }
         stats[feed.name] = { count: items.length, status: "ok" };
         return items;

@@ -31,14 +31,14 @@ export function detectRedFlags(text) {
 export function classifySeverity(text) {
   const lower = text.toLowerCase();
   if (ADVISORY_PATTERNS.some(p => lower.includes(p))) {
-    return { level: "INFO", color: "#64d2ff" };
+    return { level: "INFO", color: "#3a8fb7" };
   }
   for (const rule of SEVERITY_RULES) {
     if (rule.keywords.some(k => lower.includes(k.toLowerCase()))) {
       return { level: rule.level, color: rule.color };
     }
   }
-  return { level: "INFO", color: "#64d2ff" };
+  return { level: "INFO", color: "#3a8fb7" };
 }
 
 export function matchesKeywords(text, keywords) {

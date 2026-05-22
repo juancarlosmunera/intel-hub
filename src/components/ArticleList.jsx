@@ -9,16 +9,16 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
   return (
     <>
       <div style={{
-        background: "#0c1220",
-        border: "1px solid #111a28",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border-subtle)",
         borderRadius: 8,
         overflow: "hidden",
       }}>
         <div style={{
           padding: "10px 20px",
-          borderBottom: "1px solid #111a28",
+          borderBottom: "1px solid var(--border-subtle)",
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          fontSize: 10, color: "#3a4a5e", textTransform: "uppercase", letterSpacing: 1,
+          fontSize: 10, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: 1,
         }}>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
             Feed — {filtered.length} items
@@ -41,7 +41,7 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: "center", color: "#2a3a4e", fontSize: 12 }}>
+          <div style={{ padding: 40, textAlign: "center", color: "var(--text-faint)", fontSize: 12 }}>
             No articles match your current filters.
           </div>
         ) : (
@@ -65,13 +65,12 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 13, fontWeight: 500, color: "#dce3ea", marginBottom: 4,
-                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 4,
                   lineHeight: 1.4,
                 }}>
                   {article.title}
                 </div>
-                <div style={{ fontSize: 11, color: "#4a5a6e", marginBottom: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6, lineHeight: 1.5 }}>
                   {article.cleanDescription.slice(0, 160)}
                   {article.cleanDescription.length > 160 ? "..." : ""}
                 </div>
@@ -86,10 +85,10 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                       {article.trust.label}
                     </span>
                   )}
-                  <span className="tag" style={{ background: "#1a2436", color: "#6b7a8d", border: "1px solid #1e2a3a" }}>
+                  <span className="tag" style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                     {article.feedName}
                   </span>
-                  <span className="tag" style={{ background: "#5e5ce610", color: "#8e8ce6", border: "1px solid #5e5ce630" }}>
+                  <span className="tag" style={{ background: "var(--accent-bg)", color: "var(--text-secondary)", border: "1px solid var(--accent-border)" }}>
                     {article.feedCategory}
                   </span>
                   {article.bias && article.bias.code !== "N" && (
@@ -104,8 +103,8 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                   )}
                   {article.redFlags && article.redFlags.length > 0 && (
                     <span className="tag" style={{
-                      background: "#ff2d5515", color: "#ff6b8a",
-                      border: "1px solid #ff2d5530", fontWeight: 700, fontSize: 8,
+                      background: "var(--accent-bg)", color: "var(--status-off)",
+                      border: "1px solid var(--status-off)", fontWeight: 700, fontSize: 8,
                     }} title={`Red flags: ${article.redFlags.join(", ")}`}>
                       FLAGGED ({article.redFlags.length})
                     </span>
@@ -114,12 +113,12 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                     <span key={ki} className="keyword-pill">{kw}</span>
                   ))}
                   {article.matchedKeywords.length > 4 && (
-                    <span style={{ fontSize: 9, color: "#3a4a5e" }}>+{article.matchedKeywords.length - 4} more</span>
+                    <span style={{ fontSize: 9, color: "var(--text-faint)" }}>+{article.matchedKeywords.length - 4} more</span>
                   )}
                 </div>
               </div>
 
-              <div style={{ fontSize: 10, color: "#3a4a5e", whiteSpace: "nowrap", paddingTop: 2 }}>
+              <div style={{ fontSize: 10, color: "var(--text-faint)", whiteSpace: "nowrap", paddingTop: 2 }}>
                 {timeAgo(article.pubDate)}
               </div>
             </div>
@@ -135,7 +134,7 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               onClick={() => setSelectedArticle(null)}
               style={{
                 position: "absolute", top: 16, right: 16,
-                background: "none", border: "none", color: "#4a5a6e",
+                background: "none", border: "none", color: "var(--text-muted)",
                 fontSize: 20, cursor: "pointer", lineHeight: 1,
               }}
             >×</button>
@@ -159,7 +158,7 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                   {selectedArticle.trust.label}
                 </span>
               )}
-              <span className="tag" style={{ background: "#1a2436", color: "#6b7a8d", border: "1px solid #1e2a3a" }}>
+              <span className="tag" style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                 {selectedArticle.feedName}
               </span>
               {selectedArticle.bias && selectedArticle.bias.code !== "N" && (
@@ -172,22 +171,22 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
                   {selectedArticle.bias.label}
                 </span>
               )}
-              <span style={{ fontSize: 11, color: "#3a4a5e" }}>{timeAgo(selectedArticle.pubDate)}</span>
+              <span style={{ fontSize: 11, color: "var(--text-faint)" }}>{timeAgo(selectedArticle.pubDate)}</span>
             </div>
 
             {selectedArticle.redFlags && selectedArticle.redFlags.length > 0 && (
               <div style={{
                 padding: "10px 14px", marginBottom: 16, borderRadius: 6,
-                background: "#ff2d5510", border: "1px solid #ff2d5530",
+                background: "var(--accent-bg)", border: "1px solid var(--status-off)",
               }}>
-                <div style={{ fontSize: 10, color: "#ff6b8a", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 700 }}>
+                <div style={{ fontSize: 10, color: "var(--status-off)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: 700 }}>
                   Content Red Flags
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                   {selectedArticle.redFlags.map((flag, i) => (
                     <span key={i} style={{
                       padding: "2px 8px", borderRadius: 3, fontSize: 10,
-                      background: "#ff2d5520", color: "#ff6b8a", border: "1px solid #ff2d5530",
+                      background: "var(--accent-bg)", color: "var(--status-off)", border: "1px solid var(--status-off)",
                     }}>{flag}</span>
                   ))}
                 </div>
@@ -195,20 +194,19 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
             )}
 
             <h2 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 20, fontWeight: 700, color: "#e8edf2",
+              fontSize: 20, fontWeight: 700, color: "var(--text-primary)",
               lineHeight: 1.3, marginBottom: 16,
             }}>
               {selectedArticle.title}
             </h2>
 
-            <p style={{ fontSize: 13, color: "#8899aa", lineHeight: 1.7, marginBottom: 20 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 20 }}>
               {selectedArticle.cleanDescription}
             </p>
 
             {selectedArticle.matchedKeywords.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 10, color: "#3a4a5e", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
+                <div style={{ fontSize: 10, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>
                   Matched Keywords
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -225,8 +223,8 @@ export default function ArticleList({ filtered, severityFilter, setSeverityFilte
               rel="noopener noreferrer"
               style={{
                 display: "inline-block", padding: "10px 20px", borderRadius: 6,
-                background: "#00ff8820", border: "1px solid #00ff8840",
-                color: "#00ff88", fontFamily: "inherit", fontSize: 12,
+                background: "var(--accent-bg)", border: "1px solid var(--accent-border)",
+                color: "var(--accent-strong)", fontFamily: "inherit", fontSize: 12,
                 fontWeight: 600, textDecoration: "none", letterSpacing: 0.5,
               }}
             >

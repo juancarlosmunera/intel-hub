@@ -114,32 +114,31 @@ export default function Cyber() {
       {/* PAGE HEADER */}
       <header style={{
         padding: "20px 28px 16px",
-        borderBottom: "1px solid #111a28",
-        background: "linear-gradient(180deg, #0c1220 0%, #0a0e17 100%)",
+        borderBottom: "1px solid var(--border-subtle)",
+        background: "var(--bg-surface)",
         position: "sticky", top: 0, zIndex: 50,
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
             <h1 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 18, fontWeight: 700, color: "#e8edf2", letterSpacing: -0.5, lineHeight: 1.2,
+              fontSize: 18, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.5, lineHeight: 1.2,
             }}>
               CYBERSEC MONITOR
             </h1>
-            <div style={{ fontSize: 10, color: "#3a4a5e", letterSpacing: 1, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: 1, textTransform: "uppercase" }}>
               PCI · Fintech · Payments · Threat Intel
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <span className="ws-badge" style={{
-              background: connected ? "#00ff8815" : "#ff2d5515",
-              color: connected ? "#00ff88" : "#ff2d55",
-              border: `1px solid ${connected ? "#00ff8830" : "#ff2d5530"}`,
+              background: "var(--accent-bg)",
+              color: connected ? "var(--status-live)" : "var(--status-off)",
+              border: "1px solid var(--accent-border)",
             }}>
               <span style={{
                 width: 6, height: 6, borderRadius: "50%",
-                background: connected ? "#00ff88" : "#ff2d55",
+                background: connected ? "var(--status-live)" : "var(--status-off)",
                 display: "inline-block",
               }} />
               {connected ? "LIVE" : "OFFLINE"}
@@ -151,7 +150,7 @@ export default function Cyber() {
               </button>
             )}
             {notifPermission === "granted" && (
-              <span className="ws-badge" style={{ background: "#5e5ce615", color: "#8e8ce6", border: "1px solid #5e5ce630" }}>
+              <span className="ws-badge" style={{ background: "var(--accent-bg)", color: "var(--text-secondary)", border: "1px solid var(--accent-border)" }}>
                 NOTIFS ON
               </span>
             )}
@@ -161,8 +160,8 @@ export default function Cyber() {
               disabled={!connected}
               style={{
                 padding: "7px 16px", borderRadius: 6,
-                border: "1px solid #00ff8840", background: "#00ff8810",
-                color: connected ? "#00ff88" : "#3a4a5e",
+                border: "1px solid var(--accent-border)", background: "var(--accent-bg)",
+                color: connected ? "var(--accent)" : "var(--text-faint)",
                 fontFamily: "inherit", fontSize: 11,
                 fontWeight: 600, cursor: connected ? "pointer" : "not-allowed",
                 letterSpacing: 0.5, opacity: connected ? 1 : 0.5,
@@ -171,7 +170,7 @@ export default function Cyber() {
               {loading ? "SCANNING..." : "REFRESH"}
             </button>
             {lastRefresh && (
-              <span style={{ fontSize: 10, color: "#3a4a5e" }}>
+              <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
                 {lastRefresh.toLocaleTimeString()}
               </span>
             )}
@@ -192,7 +191,7 @@ export default function Cyber() {
         {/* CONTROLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "0 1 320px" }}>
-            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3a4a5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
+            <svg style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2.5" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="22" y2="22"/></svg>
             <input
               className="search-input"
               placeholder="Search articles..."
@@ -239,18 +238,18 @@ export default function Cyber() {
 
           <div style={{
             display: "flex", alignItems: "center", gap: 0,
-            border: "1px solid #1a2436", borderRadius: 6, overflow: "hidden",
+            border: "1px solid var(--border)", borderRadius: 6, overflow: "hidden",
           }} title="Choose sort order">
-            <span style={{ fontSize: 9, color: "#3a4a5e", padding: "0 8px 0 10px", letterSpacing: 0.5, textTransform: "uppercase" }}>
+            <span style={{ fontSize: 9, color: "var(--text-faint)", padding: "0 8px 0 10px", letterSpacing: 0.5, textTransform: "uppercase" }}>
               Sort
             </span>
             <button
               onClick={() => setSortMode("latest")}
               style={{
                 padding: "6px 12px", fontSize: 10, fontFamily: "inherit",
-                border: "none", borderLeft: "1px solid #1a2436", cursor: "pointer",
-                background: sortMode === "latest" ? "#00ff8820" : "transparent",
-                color: sortMode === "latest" ? "#00ff88" : "#6b7a8d",
+                border: "none", borderLeft: "1px solid var(--border)", cursor: "pointer",
+                background: sortMode === "latest" ? "var(--accent-bg)" : "transparent",
+                color: sortMode === "latest" ? "var(--accent-strong)" : "var(--text-muted)",
                 fontWeight: sortMode === "latest" ? 700 : 500, letterSpacing: 0.5,
               }}
             >
@@ -260,9 +259,9 @@ export default function Cyber() {
               onClick={() => setSortMode("severity")}
               style={{
                 padding: "6px 12px", fontSize: 10, fontFamily: "inherit",
-                border: "none", borderLeft: "1px solid #1a2436", cursor: "pointer",
+                border: "none", borderLeft: "1px solid var(--border)", cursor: "pointer",
                 background: sortMode === "severity" ? "#ff2d5520" : "transparent",
-                color: sortMode === "severity" ? "#ff2d55" : "#6b7a8d",
+                color: sortMode === "severity" ? "#ff2d55" : "var(--text-muted)",
                 fontWeight: sortMode === "severity" ? 700 : 500, letterSpacing: 0.5,
               }}
             >
@@ -274,22 +273,22 @@ export default function Cyber() {
         {/* FEED STATUS BAR */}
         <div style={{
           display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16,
-          padding: "10px 16px", background: "#0c1220", borderRadius: 6,
-          border: "1px solid #111a28", fontSize: 10,
+          padding: "10px 16px", background: "var(--bg-surface)", borderRadius: 6,
+          border: "1px solid var(--border-subtle)", fontSize: 10,
         }}>
           {FEEDS.map(feed => (
             <div
               key={feed.name}
-              style={{ display: "flex", alignItems: "center", color: "#4a5a6e", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", color: "var(--text-muted)", cursor: "pointer" }}
               onClick={() => setSearchTerm(searchTerm === feed.name ? "" : feed.name)}
               title={`Click to filter by ${feed.name}`}
             >
               <span className="feed-status-dot" style={{
-                background: feedStats[feed.name]?.status === "ok" ? "#00ff88" : feedStats[feed.name]?.status === "error" ? "#ff2d55" : "#3a4a5e"
+                background: feedStats[feed.name]?.status === "ok" ? "var(--status-live)" : feedStats[feed.name]?.status === "error" ? "var(--status-off)" : "var(--text-faint)"
               }} />
               {feed.name}
               {feedStats[feed.name]?.status === "ok" && (
-                <span style={{ marginLeft: 4, color: "#2a3a4e" }}>({feedStats[feed.name].count})</span>
+                <span style={{ marginLeft: 4, color: "var(--text-faint)" }}>({feedStats[feed.name].count})</span>
               )}
             </div>
           ))}
@@ -298,15 +297,15 @@ export default function Cyber() {
         {error && (
           <div style={{
             padding: "12px 16px", marginBottom: 16, borderRadius: 6,
-            background: "#ff2d5510", border: "1px solid #ff2d5530", color: "#ff6b8a", fontSize: 12,
+            background: "var(--accent-bg)", border: "1px solid var(--status-off)", color: "var(--status-off)", fontSize: 12,
           }}>
             {error}
           </div>
         )}
 
         {loading && articles.length === 0 ? (
-          <div style={{ padding: 60, textAlign: "center", color: "#2a3a4e" }}>
-            <div style={{ fontSize: 14, marginBottom: 12, letterSpacing: 2, color: "#3a4a5e" }}>///</div>
+          <div style={{ padding: 60, textAlign: "center", color: "var(--text-faint)" }}>
+            <div style={{ fontSize: 14, marginBottom: 12, letterSpacing: 2, color: "var(--text-faint)" }}>///</div>
             <div style={{ fontSize: 12, letterSpacing: 1 }}>SCANNING FEEDS...</div>
           </div>
         ) : (
@@ -316,9 +315,9 @@ export default function Cyber() {
         {/* KEYWORD CONFIG */}
         <div style={{
           marginTop: 20, padding: 20,
-          background: "#0c1220", border: "1px solid #111a28", borderRadius: 8,
+          background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", borderRadius: 8,
         }}>
-          <div style={{ fontSize: 10, color: "#3a4a5e", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+          <div style={{ fontSize: 10, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
             Active Alert Keywords ({ALERT_KEYWORDS.length})
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>

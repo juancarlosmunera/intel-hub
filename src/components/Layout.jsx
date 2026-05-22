@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
+import useTheme from "../hooks/useTheme";
+import ThemeToggle from "./ThemeToggle";
 
 const NAV_ITEMS = [
   { to: "/", icon: "OV", label: "Overview" },
@@ -11,6 +13,8 @@ const NAV_ITEMS = [
 ];
 
 export default function Layout() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       {/* SIDEBAR */}
@@ -19,18 +23,17 @@ export default function Layout() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8,
-              background: "linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)",
+              background: "var(--accent)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 16, fontWeight: 700, color: "#0a0e17",
+              fontSize: 12, fontWeight: 700, color: "#ffffff", letterSpacing: 0.5,
             }}>IH</div>
             <div>
               <div style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 14, fontWeight: 700, color: "#e8edf2", letterSpacing: -0.3,
+                fontSize: 14, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3,
               }}>
                 INTEL HUB
               </div>
-              <div style={{ fontSize: 9, color: "#3a4a5e", letterSpacing: 1, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 9, color: "var(--text-faint)", letterSpacing: 1, textTransform: "uppercase" }}>
                 Monitoring Dashboard
               </div>
             </div>
@@ -51,10 +54,14 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div style={{ padding: "16px 20px", borderTop: "1px solid #111a28", marginTop: "auto" }}>
-          <div style={{ fontSize: 9, color: "#2a3a4e", letterSpacing: 0.5 }}>
+        <div style={{
+          padding: "16px 20px", borderTop: "1px solid var(--border-subtle)", marginTop: "auto",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+        }}>
+          <div style={{ fontSize: 9, color: "var(--text-faint)", letterSpacing: 0.5 }}>
             INTEL HUB v2.0
           </div>
+          <ThemeToggle theme={theme} setTheme={setTheme} />
         </div>
       </aside>
 

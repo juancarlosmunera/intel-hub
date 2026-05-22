@@ -1368,7 +1368,7 @@ function saveAlertedSet(set) {
 function buildAlertEmail(articles) {
   const rows = articles.map(a => {
     const severity = classifySeverity(`${a.title} ${a.description}`);
-    const color = severity === "BREACH" ? "#e040fb" : severity === "CRITICAL" ? "#ff2d55" : severity === "HIGH" ? "#ff9500" : "#ffcc00";
+    const color = severity === "BREACH" ? "#c41e3a" : severity === "CRITICAL" ? "#ff2d55" : severity === "HIGH" ? "#ff9500" : "#ffcc00";
     return `
       <tr>
         <td style="padding:10px;border-bottom:1px solid #1e2a3a;">

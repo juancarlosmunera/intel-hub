@@ -19,10 +19,10 @@ export default function StatCards({ articles, feedCount, activeFeedCount, severi
           {activeFeedCount}<span style={{ fontSize: 14, color: "var(--text-faint)" }}>/{feedCount}</span>
         </div>
       </div>
-      <div className={`stat-card${severityFilter === "BREACH" ? " active-filter" : ""}`} onClick={() => setSeverityFilter(severityFilter === "BREACH" ? null : "BREACH")} style={{ color: "#e040fb" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "#e040fb" }} />
+      <div className={`stat-card${severityFilter === "BREACH" ? " active-filter" : ""}`} onClick={() => setSeverityFilter(severityFilter === "BREACH" ? null : "BREACH")} style={{ color: "#c41e3a" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "#c41e3a" }} />
         <div style={labelStyle}>Breaches</div>
-        <div style={{ ...numStyle, color: "#e040fb" }}>{breachCount}</div>
+        <div style={{ ...numStyle, color: "#c41e3a" }}>{breachCount}</div>
       </div>
       <div className={`stat-card${severityFilter === "CRITICAL" ? " active-filter" : ""}`} onClick={() => setSeverityFilter(severityFilter === "CRITICAL" ? null : "CRITICAL")} style={{ color: "#ff2d55" }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "#ff2d55" }} />

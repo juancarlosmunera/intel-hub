@@ -97,7 +97,7 @@ function ChannelSummary({ channel, searchFilter = "" }) {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {breachCount > 0 && <span className="tag" style={{ background: "#e040fb15", color: "#e040fb", border: "1px solid #e040fb30" }}>{breachCount} BREACH</span>}
+          {breachCount > 0 && <span className="tag" style={{ background: "#c41e3a15", color: "#c41e3a", border: "1px solid #c41e3a30" }}>{breachCount} BREACH</span>}
           {criticalCount > 0 && <span className="tag" style={{ background: "#ff2d5515", color: "#ff2d55", border: "1px solid #ff2d5530" }}>{criticalCount} CRITICAL</span>}
           {highCount > 0 && <span className="tag" style={{ background: "#ff950015", color: "#ff9500", border: "1px solid #ff950030" }}>{highCount} HIGH</span>}
           <span className="ws-badge" style={{

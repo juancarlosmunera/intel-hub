@@ -1,5 +1,5 @@
 export const SEVERITY_RULES = [
-  { keywords: ["data breach", "breach disclosed", "breach notification", "records exposed", "records leaked", "data leak", "data exposed", "credentials leaked", "customer data exposed", "personal data breach", "million records", "database exposed", "sensitive data exposed", "breach confirmed"], level: "BREACH", color: "#e040fb" },
+  { keywords: ["data breach", "breach disclosed", "breach notification", "records exposed", "records leaked", "data leak", "data exposed", "credentials leaked", "customer data exposed", "personal data breach", "million records", "database exposed", "sensitive data exposed", "breach confirmed"], level: "BREACH", color: "#c41e3a" },
   { keywords: ["zero-day", "0-day", "actively exploited", "ransomware attack", "RCE", "remote code execution", "critical vulnerability exploited", "under active attack", "in the wild", "Magecart"], level: "CRITICAL", color: "#ff2d55" },
   { keywords: ["skimmer found", "payment fraud", "SDK hijack", "POS malware", "card fraud", "backdoor found", "backdoor discovered", "trojanized package", "trojanized update", "supply chain attack", "supply chain compromise", "malicious package", "malicious dependency"], level: "HIGH", color: "#ff9500" },
   { keywords: ["CVE-2026", "CVE-2025", "CVE-2024", "SQL injection", "XSS attack", "credential stuffing attack", "formjacking attack", "actively scanning", "proof of concept", "exploit released", "patch now", "critical patch", "emergency patch"], level: "MEDIUM", color: "#d4a017" },
@@ -20,7 +20,7 @@ export const ADVISORY_PATTERNS = [
 export const SEVERITY_RANK = { BREACH: 0, CRITICAL: 1, HIGH: 2, MEDIUM: 3, INFO: 4 };
 
 export const SEVERITY_COLORS = {
-  BREACH: "#e040fb",
+  BREACH: "#c41e3a",
   CRITICAL: "#ff2d55",
   HIGH: "#ff9500",
   MEDIUM: "#d4a017",

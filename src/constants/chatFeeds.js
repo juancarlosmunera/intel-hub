@@ -10,7 +10,7 @@ export const FEEDS = [
   // Cybersec News
   { name: "TG: The Hacker News", category: "Telegram" },
   // OSINT
-  { name: "TG: OsintTV", category: "Telegram" },
+  { name: "TG: Cyber Detective", category: "Telegram" },
   { name: "TG: True OSINT", category: "Telegram" },
   // Geopolitics
   { name: "TG: Intel Slava", category: "Telegram" },

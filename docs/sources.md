@@ -81,7 +81,7 @@ The list is **deliberately small**. Most "best cybersec Telegram" lists circulat
 **Threat Intel & Malware** — vx-underground
 **Ransomware & Leak Tracking** — RansomFeed News, RansomLook, Red Packet Security
 **Cybersec News** — The Hacker News
-**OSINT** — OsintTV, True OSINT
+**OSINT** — Cyber Detective, True OSINT
 **Geopolitics** — Intel Slava (Russian-language but high-volume conflict intel)
 **Bug Bounty** — Bug Bounty Hunter, Bug Bounty Channel
 **Backup pool** (Russian-language; promoted if any primary goes stale) — SecAtor, F6 Cybersecurity

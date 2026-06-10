@@ -48,6 +48,7 @@ export const SOURCE_BIAS = {
   "TG: RansomLook": "N",
   "TG: Intel Slava": "I",
   "TG: OsintTV": "N",
+  "TG: Cyber Detective": "N",
   "TG: The Hacker News": "N",
   "TG: SecAtor (RU)": "N",
   "TG: Bug Bounty Hunter": "N",

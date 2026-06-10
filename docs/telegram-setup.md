@@ -35,7 +35,7 @@ No setup required. Intel Hub ships with 12 built-in channels and auto-rotation. 
 | `@RansomFeedNews` | Ransomware | Ransomware victim notifications (ransomfeed.it) |
 | `@ransomlook` | Ransomware | Ransomware group posts & leak site activity |
 | `@intelslava` | Geopolitics | Conflict monitoring, geopolitical breaking news |
-| `@OsintTv` | OSINT | OSINT investigations & collection techniques |
+| `@cybdetective` | OSINT | OSINT tools, techniques & investigation resources |
 | `@thehackernews` | Cyber News | Breaking cybersec news, zero-days, breaches |
 | `@true_secator` | Threat Intel | Russian-language CTI analysis |
 | `@thebugbountyhunter` | Bug Bounty | Vulnerability research, bug bounty findings |

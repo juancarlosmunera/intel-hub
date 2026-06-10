@@ -233,6 +233,7 @@ export const SOURCE_TRUST = {
   "TG: RansomLook": 2,
   "TG: Intel Slava": 4,
   "TG: OsintTV": 3,
+  "TG: Cyber Detective": 3,
   "TG: The Hacker News": 2,
   "TG: SecAtor (RU)": 3,
   "TG: Bug Bounty Hunter": 3,

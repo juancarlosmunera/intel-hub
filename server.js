@@ -671,7 +671,8 @@ const TELEGRAM_CHANNELS_PRIMARY = [
   // Cybersec News
   { handle: "thehackernews", category: "Cyber News", label: "The Hacker News" },
   // OSINT
-  { handle: "OsintTv", category: "OSINT", label: "OsintTV" },
+  // Note: @OsintTv swapped out 2026-06 — near-dormant (0.4 posts/week, 46 subs)
+  { handle: "cybdetective", category: "OSINT", label: "Cyber Detective" },
   { handle: "True_OSINT", category: "OSINT", label: "True OSINT" },
   // Geopolitics
   { handle: "intelslava", category: "Geopolitics", label: "Intel Slava" },

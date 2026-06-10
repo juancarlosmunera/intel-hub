@@ -1,27 +1,27 @@
 # Intel Hub
 
-> Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat-feed intelligence — 7 channels, 170+ feeds, severity classification, source credibility, political bias tagging, Telegram monitoring, and webhook ingest. One process, one port, zero required API keys.
+> Real-time cybersecurity, geopolitics, OSINT, dark web, social media, and chat-feed intelligence - 7 channels, 170+ feeds, severity classification, source credibility, political bias tagging, Telegram monitoring, and webhook ingest. One process, one port, zero required API keys.
 
 ![Intel Hub Dashboard](docs/images/intel_hub_screen.png)
 
 ## Features
 
-- **7-channel dashboard** — Cybersecurity · World News · Geopolitics & Defense · OSINT · Dark Web · Social Media · Chat Feeds
+- **7-channel dashboard** - Cybersecurity · World News · Geopolitics & Defense · OSINT · Dark Web · Social Media · Chat Feeds
 - **170+ feeds** with auto-severity, deduplication, and 90-day retention
-- **Curated Telegram monitoring** — every channel verified active in the last 7 days; auto-rotation when channels go dark
-- **Universal Ingest API** — push messages from Tasker, iOS Shortcuts, Discord bots, signal-cli, anything
+- **Curated Telegram monitoring** - every channel verified active in the last 7 days; auto-rotation when channels go dark
+- **Universal Ingest API** - push messages from Tasker, iOS Shortcuts, Discord bots, signal-cli, anything
 - **Source credibility scoring** (4-tier) and **political bias tagging** (7 categories)
-- **Promotional content filter** — drops syndicated affiliate spam (credit-card, home-equity, "0% APR" posts)
+- **Promotional content filter** - drops syndicated affiliate spam (credit-card, home-equity, "0% APR" posts)
 - **Real-time updates** via WebSocket on the same origin as the served frontend
 - **Email alerts** for high-severity items
 - **Memory-bounded** with tiered compaction → eviction; safe to leave running indefinitely
-- **Single-process production** — bundles the React frontend and serves it from the Node server; auto-launches the browser
+- **Single-process production** - bundles the React frontend and serves it from the Node server; auto-launches the browser
 
 ## Quick Start
 
 Three ways to run Intel Hub. All end at `http://localhost:3001`.
 
-### Option A — Prebuilt Docker image (fastest)
+### Option A - Prebuilt Docker image (fastest)
 
 No clone, no build. Pulls the published image from GitHub Container Registry:
 
@@ -35,7 +35,7 @@ docker run -d --name intel-hub \
 
 To upgrade: `docker pull ghcr.io/juancarlosmunera/intel-hub:latest` then recreate the container.
 
-### Option B — Docker Compose (build from source)
+### Option B - Docker Compose (build from source)
 
 ```bash
 git clone https://github.com/juancarlosmunera/intel-hub.git
@@ -53,7 +53,7 @@ docker compose down -v             # stop AND wipe scraped data
 
 Articles persist in a named Docker volume across restarts. To upgrade: `git pull && docker compose up -d --build`.
 
-### Option C — Native Node.js + PM2
+### Option C - Native Node.js + PM2
 
 Requires **Node.js 18+**.
 
@@ -75,7 +75,7 @@ npm run dev             # backend on 3001, Vite on 3000 (auto-opens browser)
 
 ### Windows
 
-Docker Desktop (Options A and B) is the smoothest path on Windows — it works identically to Mac and Linux.
+Docker Desktop (Options A and B) is the smoothest path on Windows - it works identically to Mac and Linux.
 
 For the native Node path, **WSL2** is recommended over native Windows so the Linux-tested process management and scripts behave the same:
 
@@ -118,4 +118,4 @@ Full per-channel source lists in [`docs/sources.md`](docs/sources.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

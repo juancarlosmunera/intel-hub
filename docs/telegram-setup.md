@@ -31,7 +31,6 @@ No setup required. Intel Hub ships with 12 built-in channels and auto-rotation. 
 |--------|----------|----------------|
 | `@vxunderground` | Threat Intel | Malware samples, source code, threat campaigns |
 | `@hackgit` | Threat Intel | Offensive tools, red team utilities, OSINT tools |
-| `@DarkfeedNews` | Ransomware | Real-time ransomware victim alerts, breach announcements |
 | `@dailydarkweb` | Dark Web | Data leaks, threat actor claims, exploit sales |
 | `@RansomFeedNews` | Ransomware | Ransomware victim notifications (ransomfeed.it) |
 | `@ransomlook` | Ransomware | Ransomware group posts & leak site activity |

@@ -97,7 +97,7 @@ Native Windows Node works too, but PM2 boot-autostart needs `pm2-windows-startup
 | OSINT | 24+ | GDELT, Bellingcat, vendor threat intel, government advisories, sanctions |
 | Dark Web | 20+ | Ransomware tracking, breach journalism, malware analysis, Ransomfeed.it API |
 | Social Media | 16+ | Reddit, Mastodon, GitHub Advisories, NVD, optional X/Twitter |
-| Chat Feeds | 11+2 | Curated Telegram channels with `npm run tg:audit` freshness check |
+| Chat Feeds | 10+2 | Curated Telegram channels with `npm run tg:audit` freshness check |
 
 Full per-channel source lists in [`docs/sources.md`](docs/sources.md).
 

@@ -4,7 +4,6 @@ export const FEEDS = [
   // Threat Intel & Malware
   { name: "TG: vx-underground", category: "Telegram" },
   // Ransomware & Leak Tracking
-  { name: "TG: DARKFEED", category: "Telegram" },
   { name: "TG: RansomFeed News", category: "Telegram" },
   { name: "TG: RansomLook", category: "Telegram" },
   { name: "TG: Red Packet Security", category: "Telegram" },

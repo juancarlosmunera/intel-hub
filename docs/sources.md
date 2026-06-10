@@ -74,12 +74,12 @@ Full per-channel breakdown of every feed Intel Hub aggregates. To add or remove 
 | NVD (NIST) | High-severity CVEs from last 3 days via REST API 2.0 | No |
 | X / Twitter | Search API v2 — cybersecurity keyword monitoring | Yes ($100/mo Basic tier) |
 
-## Chat Feeds (11 primary + 2 backup)
+## Chat Feeds (10 primary + 2 backup)
 
 The list is **deliberately small**. Most "best cybersec Telegram" lists circulating online recommend channels that haven't posted in months or years. Every channel below was verified to post within the last 7 days at the time of the last audit. Run `npm run tg:audit` anytime to re-verify (see [telegram-setup.md](telegram-setup.md)).
 
 **Threat Intel & Malware** — vx-underground
-**Ransomware & Leak Tracking** — DARKFEED, RansomFeed News, RansomLook, Red Packet Security
+**Ransomware & Leak Tracking** — RansomFeed News, RansomLook, Red Packet Security
 **Cybersec News** — The Hacker News
 **OSINT** — OsintTV, True OSINT
 **Geopolitics** — Intel Slava (Russian-language but high-volume conflict intel)

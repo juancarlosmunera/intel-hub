@@ -664,7 +664,7 @@ const TELEGRAM_CHANNELS_PRIMARY = [
   // Threat Intel & Malware
   { handle: "vxunderground", category: "Threat Intel", label: "vx-underground" },
   // Ransomware & Leak Tracking
-  { handle: "DarkfeedNews", category: "Ransomware", label: "DARKFEED" },
+  // Note: @DarkfeedNews removed 2026-06 — public preview disabled (t.me/s/ redirects to join page)
   { handle: "RansomFeedNews", category: "Ransomware", label: "RansomFeed News" },
   { handle: "ransomlook", category: "Ransomware", label: "RansomLook" },
   { handle: "RedPacketSecurity", category: "Dark Web", label: "Red Packet Security" },
@@ -747,6 +747,11 @@ async function checkTelegramChannelHealth(handle) {
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return { alive: false, reason: `HTTP ${res.status}` };
+    // Channels with public preview disabled redirect /s/{handle} → /{handle} (join page).
+    // That page returns 200 but has no posts, so treat it as dead.
+    if (res.redirected && !new URL(res.url).pathname.startsWith("/s/")) {
+      return { alive: false, reason: "no public preview" };
+    }
     const html = await res.text();
     // Check for "channel not found" or empty channel indicators
     if (html.includes("tgme_channel_info_counter") || html.includes("tgme_widget_message")) {

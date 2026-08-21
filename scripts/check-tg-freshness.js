@@ -19,10 +19,29 @@ function extractChannels(src, varName) {
     .map(([, handle, label]) => ({ handle, label }));
 }
 
-async function probe(handle) {
-  const res = await fetch(`https://t.me/s/${handle}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; IntelHub/2.0)" },
+// Same browser-grade headers the server's scraper uses — Telegram 403s
+// bot-style user agents far more aggressively, especially from cloud IPs.
+const FETCH_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-US,en;q=0.9",
+};
+
+async function fetchPreview(handle) {
+  return fetch(`https://t.me/s/${handle}`, {
+    headers: FETCH_HEADERS,
+    signal: AbortSignal.timeout(15000),
   });
+}
+
+async function probe(handle) {
+  let res = await fetchPreview(handle);
+  // 403/429 from a single request is often transient rate-limiting —
+  // back off once before concluding the fetch layer is blocked.
+  if (res.status === 403 || res.status === 429) {
+    await new Promise(r => setTimeout(r, 5000));
+    res = await fetchPreview(handle);
+  }
   if (!res.ok) return { posts: 0, latest: null, fetchFail: `HTTP ${res.status}` };
   // Preview-disabled channels redirect /s/{handle} → /{handle} (join page, no posts)
   if (res.redirected && !new URL(res.url).pathname.startsWith("/s/")) {
